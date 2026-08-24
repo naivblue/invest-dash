@@ -26,10 +26,15 @@ _VIX = "^VIX"
 
 
 def rsi(prices: pd.Series, period: int = 14) -> float:
-    """Wilder 아닌 단순이동평균 RSI — investment/analyzer/indicators.py와 동일 정의."""
+    """Wilder 지수평활 RSI — investment/analyzer/indicators.py와 동일 정의.
+
+    단순이동평균(rolling)을 쓰면 큰 봉이 14일 창을 벗어나는 날 RSI가 통째로 튄다
+    (2026-08-24: 가격 -1%인데 RSI 58->37). 그 drop-off 결함 때문에 ewm을 쓴다.
+    """
     delta = prices.diff()
-    gain = delta.clip(lower=0).rolling(period).mean().iloc[-1]
-    loss = (-delta).clip(lower=0).rolling(period).mean().iloc[-1]
+    a = 1 / period
+    gain = delta.clip(lower=0).ewm(alpha=a, adjust=False).mean().iloc[-1]
+    loss = (-delta).clip(lower=0).ewm(alpha=a, adjust=False).mean().iloc[-1]
     if loss == 0:
         return 100.0 if gain > 0 else 50.0
     return round(100 - 100 / (1 + gain / loss), 1)
@@ -68,8 +73,8 @@ def stage_history(closes: pd.Series) -> dict:
     52주 고점·RSI를 매 시점 기준으로 다시 계산하므로 당시에 봤을 판정과 같다.
     """
     delta = closes.diff()
-    gain = delta.clip(lower=0).rolling(14).mean()
-    loss = (-delta).clip(lower=0).rolling(14).mean()
+    gain = delta.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+    loss = (-delta).clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
     rsi_s = (100 - 100 / (1 + gain / loss)).fillna(50)
     dd_s = (closes / closes.rolling(252, min_periods=60).max() - 1) * 100
 
@@ -113,6 +118,14 @@ def _selfcheck() -> None:
     assert classify(-35, 55)["n"] == 4
     up = pd.Series(range(1, 40), dtype=float)
     assert rsi(up) == 100.0
+    # 급등 후 횡보 — 급등일이 14일 창을 벗어나는 날 RSI가 튀면 안 된다.
+    # 같은 데이터로 rolling(14) 방식은 하루에 15.9p 점프한다 (가격은 +0.4%).
+    v = [100.0] * 3 + [103.4]
+    for i in range(30):
+        v.append(v[-1] * (1.004 if i % 2 else 0.997))
+    chop = pd.Series(v)
+    jumps = [abs(rsi(chop.iloc[:n + 1]) - rsi(chop.iloc[:n])) for n in range(16, 34)]
+    assert max(jumps) < 8, f"RSI drop-off: {max(jumps):.1f}p"
     assert [s["n"] for s in LADDER] == [1, 2, 3, 4]
     assert [s["pct"] for s in LADDER] == [None, -10, -20, -30]
     names = [t[0] for t in TRACK]
