@@ -78,6 +78,14 @@ const f = n => n.toLocaleString('en-US', n >= 1000
 const pct = n => (n > 0 ? '+' : '') + n.toFixed(2) + '%';
 const cls = n => n > 0 ? 'up' : n < 0 ? 'down' : '';
 
+// 마지막 도달 시점 — 오래될수록 단위를 키운다 (4단계는 보통 몇 년 단위)
+const ago = iso => {
+  const days = Math.floor((Date.now() - Date.parse(iso + 'T00:00:00Z')) / 864e5);
+  return days < 60 ? `${days}일 전`
+       : days < 730 ? `${Math.floor(days / 30)}개월 전`
+       : `${(days / 365).toFixed(1)}년 전`;
+};
+
 const rsiMood = v => v <= 30 ? ['과매도', 'down'] : v >= 70 ? ['과열', 'up'] : ['중립', ''];
 const vixMood = v => v >= 30 ? ['공포', 'up'] : v >= 20 ? ['경계', 'warn'] : ['평온', 'ok'];
 const ddMood  = v => v <= -30 ? ['4단계 구간', 'up'] : v <= -20 ? ['3단계 구간', 'up']
@@ -140,14 +148,21 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
     <h3>매수 단계</h3>
     <div class="scroll"><table>
       <caption>단계는 고점대비 하락률이 정하고, RSI는 2단계에서만 AND 게이트로 붙는다.
-        가격은 52주 고점 $${f(d.qqq.high52)} 기준으로 매 갱신마다 재계산</caption>
-      <tr><th>단계</th><th>조건</th><th class="num">QQQ 트리거</th><th>행동</th></tr>
+        가격은 52주 고점 $${f(d.qqq.high52)} 기준으로 매 갱신마다 재계산.
+        마지막 도달은 같은 규칙을 QQQ 전체 역사(${d.history_from}~)에 적용해 찾은 값</caption>
+      <tr><th>단계</th><th>조건</th><th class="num">QQQ 트리거</th>
+          <th class="num">마지막 도달</th><th>행동</th></tr>
       ${d.ladder.map(s => {
         const hit = s.pct != null && d.qqq.price <= d.triggers[s.pct];
         return `<tr class="${s.n === d.stage.n ? 'cur' : s.n < d.stage.n ? 'past' : ''}">
           <td><span class="s${s.n}">■</span> ${s.n} · ${s.label}${s.n === d.stage.n ? ' ←' : ''}</td>
           <td>${s.cond}</td>
           <td class="num ${hit ? 'hit' : ''}">${s.pct == null ? '—' : '$' + f(d.triggers[s.pct]) + ' 이하'}</td>
+          <td class="num">${
+            s.n === d.stage.n ? '<span class="warn">현재</span>'
+            : !d.last_seen[s.n] ? '—'
+            : `${d.last_seen[s.n].date}<br><span class="dim">${ago(d.last_seen[s.n].date)}</span>`
+          }</td>
           <td>${s.action}</td></tr>`;
       }).join('')}
     </table></div>`;

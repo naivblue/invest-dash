@@ -61,6 +61,33 @@ def classify(drawdown: float, rsi_val: float) -> dict:
     return next(s for s in LADDER if s["n"] == n)
 
 
+def stage_history(closes: pd.Series) -> dict:
+    """QQQ 전체 역사에 현재 규칙을 그대로 적용해 단계별 '마지막 도달일'을 찾는다.
+
+    52주 고점·RSI를 매 시점 기준으로 다시 계산하므로 당시에 봤을 판정과 같다.
+    """
+    delta = closes.diff()
+    gain = delta.clip(lower=0).rolling(14).mean()
+    loss = (-delta).clip(lower=0).rolling(14).mean()
+    rsi_s = (100 - 100 / (1 + gain / loss)).fillna(50)
+    dd_s = (closes / closes.rolling(252, min_periods=60).max() - 1) * 100
+
+    stages = pd.Series(
+        [classify(a, b)["n"] for a, b in zip(dd_s, rsi_s)], index=closes.index
+    )
+    out = {}
+    for n in (2, 3, 4):
+        hit = stages[stages == n]
+        if len(hit):
+            last = hit.index[-1]
+            out[str(n)] = {
+                "date": str(last.date()),
+                "drawdown_pct": round(float(dd_s.loc[last]), 1),
+                "days": int((stages == n).sum()),
+            }
+    return out
+
+
 def quote(s: pd.Series, with_52w: bool = False) -> dict:
     cur = float(s.iloc[-1])
     prev = float(s.iloc[-2])
@@ -109,6 +136,9 @@ def main() -> None:
 
     qqq = next(t for t in track if t["name"] == "QQQ")
     qqq_close = close["QQQ"].dropna()
+    # 마지막 N단계는 2년치로는 안 잡힌다 (직전 4단계가 2023-01) → 전체 역사 별도 조회
+    full = yf.download("QQQ", period="max", progress=False, auto_adjust=True)["Close"]
+    full = (full["QQQ"] if hasattr(full, "columns") else full).dropna()
 
     data = {
         "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -121,10 +151,13 @@ def main() -> None:
             str(p): round(qqq["high52"] * (1 + p / 100), 2) for p in (-10, -20, -30)
         },
         "track": track,
+        "last_seen": stage_history(full),
+        "history_from": str(full.index[0].date()),
     }
     Path("data.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    print("마지막 도달:", {k: v["date"] for k, v in data["last_seen"].items()})
     print(f"stage {data['stage']['n']} · {data['stage']['label']} "
           f"| QQQ {qqq['price']} ({qqq['drawdown_pct']}%) RSI {qqq['rsi']} "
           f"| VIX {data['vix']['price']} | {len(track)}종 트래킹")
