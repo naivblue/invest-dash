@@ -11,7 +11,17 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-TICKERS = {"qqq": "QQQ", "qld": "QLD", "vix": "^VIX", "fx": "KRW=X"}
+# 하단 트래킹 표 — (표시명, 야후 심볼, 통화기호). 순서가 곧 표의 행 순서.
+TRACK = [
+    ("QQQ", "QQQ", "$"),
+    ("QLD (2x)", "QLD", "$"),
+    ("S&P 500", "^GSPC", ""),
+    ("나스닥", "^IXIC", ""),
+    ("USD/KRW", "KRW=X", "₩"),
+    ("삼성전자", "005930.KS", "₩"),
+    ("코스피", "^KS11", ""),
+]
+_VIX = "^VIX"
 
 
 def rsi(prices: pd.Series, period: int = 14) -> float:
@@ -77,38 +87,47 @@ def _selfcheck() -> None:
     assert rsi(up) == 100.0
     assert [s["n"] for s in LADDER] == [1, 2, 3, 4]
     assert [s["pct"] for s in LADDER] == [None, -10, -20, -30]
+    names = [t[0] for t in TRACK]
+    assert len(names) == len(set(names))          # 표시명 중복 = 표에서 구분 불가
+    assert "QQQ" in names                          # 단계 판정이 QQQ에 의존
     assert "<" not in json.dumps(LADDER)   # 표에 그대로 꽂히므로 태그로 오해될 문자 금지
 
 
 def main() -> None:
     _selfcheck()
-    close = yf.download(
-        list(TICKERS.values()), period="2y", progress=False, auto_adjust=True
-    )["Close"]
+    symbols = [t[1] for t in TRACK] + [_VIX]
+    close = yf.download(symbols, period="2y", progress=False, auto_adjust=True)["Close"]
 
-    qqq = close["QQQ"].dropna()
-    qld = close["QLD"].dropna()
-    qqq_rsi = rsi(qqq.iloc[-90:])
-    q = quote(qqq, with_52w=True) | {"rsi": qqq_rsi}
-    stage = classify(q["drawdown_pct"], qqq_rsi)
+    track = []
+    for name, sym, unit in TRACK:
+        series = close[sym].dropna()
+        track.append(
+            {"name": name, "unit": unit}
+            | quote(series, with_52w=True)
+            | {"rsi": rsi(series.iloc[-90:]), "asof": str(series.index[-1].date())}
+        )
+
+    qqq = next(t for t in track if t["name"] == "QQQ")
+    qqq_close = close["QQQ"].dropna()
 
     data = {
         "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "asof": str(qqq.index[-1].date()),
-        "qqq": q,
-        "qld": quote(qld, with_52w=True) | {"rsi": rsi(qld.iloc[-90:])},
-        "vix": quote(close["^VIX"].dropna()),
-        "fx": quote(close["KRW=X"].dropna()),
-        "stage": stage,
+        "asof": str(qqq_close.index[-1].date()),
+        "qqq": qqq,
+        "vix": quote(close[_VIX].dropna()),
+        "stage": classify(qqq["drawdown_pct"], qqq["rsi"]),
         "ladder": LADDER,
         "triggers": {
-            str(p): round(q["high52"] * (1 + p / 100), 2) for p in (-10, -20, -30)
+            str(p): round(qqq["high52"] * (1 + p / 100), 2) for p in (-10, -20, -30)
         },
+        "track": track,
     }
     Path("data.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    print(f"stage {data['stage']['n']} · {data['stage']['label']} "
+          f"| QQQ {qqq['price']} ({qqq['drawdown_pct']}%) RSI {qqq['rsi']} "
+          f"| VIX {data['vix']['price']} | {len(track)}종 트래킹")
 
 
 if __name__ == "__main__":

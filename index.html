@@ -21,8 +21,9 @@ header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
 h1{font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0}
 h1 span{color:var(--dim);font-weight:500}
 .meta{font-size:12px;color:var(--dim)}
+.dim{color:var(--dim)}
 
-.stage{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:18px;
+.stage{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:14px;
   background:linear-gradient(135deg,var(--card),#12161d)}
 .stage .badge{display:inline-block;font-size:12px;font-weight:700;padding:4px 11px;border-radius:99px;
   border:1px solid currentColor;margin-bottom:11px}
@@ -30,29 +31,31 @@ h1 span{color:var(--dim);font-weight:500}
 .stage p{margin:0;color:var(--dim);font-size:14px;line-height:1.6}
 .s1{color:var(--ok)} .s2{color:var(--warn)} .s3{color:#e8802f} .s4{color:var(--up)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 17px}
-.card .k{font-size:12px;color:var(--dim);letter-spacing:.02em;margin-bottom:9px}
-.card .v{font-size:27px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
-.card .chg{font-size:13px;font-weight:600;margin-top:5px}
-.card .sub{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+/* 메인 3지표 — 판단에 직접 쓰는 값만 크게 */
+.main{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:22px}
+.main .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.main .k{font-size:12px;color:var(--dim);margin-bottom:10px}
+.main .v{font-size:42px;font-weight:700;letter-spacing:-.035em;line-height:1}
+.main .state{font-size:14px;font-weight:600;margin-top:8px}
+.main .sub{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);
   font-size:12.5px;color:var(--dim);display:flex;justify-content:space-between;gap:10px}
-.card .sub b{color:var(--tx);font-weight:600}
-.up{color:var(--up)} .down{color:var(--down)}
+.main .sub b{color:var(--tx);font-weight:600}
+.up{color:var(--up)} .down{color:var(--down)} .warn{color:var(--warn)} .ok{color:var(--ok)}
 
+h3{font-size:13px;font-weight:600;color:var(--dim);margin:0 0 9px 2px;letter-spacing:.01em}
 table{width:100%;border-collapse:collapse;background:var(--card);
-  border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
-caption{text-align:left;font-size:12px;color:var(--dim);padding:0 2px 8px}
-th,td{padding:11px 15px;text-align:left;border-bottom:1px solid var(--line)}
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px;margin-bottom:22px}
+caption{text-align:left;font-size:12px;color:var(--dim);padding:0 2px 8px;line-height:1.55}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line)}
 th{font-size:12px;color:var(--dim);font-weight:600;background:#12161d}
 tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;white-space:nowrap}
 td.hit{color:var(--warn);font-weight:600}
 tr.cur{background:#1c222e}
 tr.cur td{color:var(--tx);font-weight:600}
 tr.past td{color:var(--dim)}
-td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
-table + table{margin-top:14px}
-footer{margin-top:26px;font-size:11.5px;color:var(--dim);line-height:1.7}
+.scroll{overflow-x:auto}
+footer{margin-top:8px;font-size:11.5px;color:var(--dim);line-height:1.7}
 </style>
 </head>
 <body>
@@ -64,24 +67,24 @@ footer{margin-top:26px;font-size:11.5px;color:var(--dim);line-height:1.7}
   <div id="app"></div>
   <footer>
     데이터: Yahoo Finance (yfinance) · 평일 미국장 마감 후 자동 갱신 · 종가 기준(실시간 아님)<br>
-    단계 판정은 QQQ 52주 고점대비 하락률이 결정하고, −10%대 구간에서만 RSI&lt;35가 AND 게이트로 붙는다. 투자 권유 아님.
+    단계 판정은 QQQ 52주 고점대비 하락률이 결정하고, −10%대 구간에서만 RSI 35 미만이 AND 게이트로 붙는다. 투자 권유 아님.
   </footer>
 </div>
 <script>
-const f = (n, d = 2) => n.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
-const sign = n => (n > 0 ? '+' : '') + n.toFixed(2) + '%';
+// 1,000 넘어가면 소수점이 의미 없다 (지수·원화), 그 아래는 2자리 (달러·VIX)
+const f = n => n.toLocaleString('en-US', n >= 1000
+  ? {maximumFractionDigits: 0}
+  : {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const pct = n => (n > 0 ? '+' : '') + n.toFixed(2) + '%';
 const cls = n => n > 0 ? 'up' : n < 0 ? 'down' : '';
 
-const vixMood = v => v >= 30 ? ['공포', 'up'] : v >= 20 ? ['경계', ''] : ['평온', 'down'];
-
-function card({k, v, chg, sub}) {
-  const rows = (sub || []).map(([a, b]) => `<div class="sub"><span>${a}</span><b>${b}</b></div>`).join('');
-  return `<div class="card"><div class="k">${k}</div><div class="v">${v}</div>
-    <div class="chg ${cls(chg)}">${sign(chg)}</div>${rows}</div>`;
-}
+const rsiMood = v => v <= 30 ? ['과매도', 'down'] : v >= 70 ? ['과열', 'up'] : ['중립', ''];
+const vixMood = v => v >= 30 ? ['공포', 'up'] : v >= 20 ? ['경계', 'warn'] : ['평온', 'ok'];
+const ddMood  = v => v <= -30 ? ['4단계 구간', 'up'] : v <= -20 ? ['3단계 구간', 'up']
+                   : v <= -10 ? ['−10% 돌파', 'warn'] : ['조정 전', 'ok'];
 
 fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
-  const [mood, moodCls] = vixMood(d.vix.price);
+  const rm = rsiMood(d.qqq.rsi), vm = vixMood(d.vix.price), dm = ddMood(d.qqq.drawdown_pct);
   document.getElementById('meta').textContent =
     `기준일 ${d.asof} · 갱신 ${d.updated.slice(0, 16).replace('T', ' ')} UTC`;
 
@@ -92,36 +95,65 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
       <p>${d.stage.action}</p>
     </div>
 
-    <div class="grid">
-      ${card({k: 'QQQ', v: '$' + f(d.qqq.price), chg: d.qqq.chg_pct, sub: [
-        ['52주 고점대비', `<span class="${cls(d.qqq.drawdown_pct)}">${d.qqq.drawdown_pct.toFixed(1)}%</span>`],
-        ['RSI(14)', d.qqq.rsi]]})}
-      ${card({k: 'QLD (2x)', v: '$' + f(d.qld.price), chg: d.qld.chg_pct, sub: [
-        ['52주 고점대비', `<span class="${cls(d.qld.drawdown_pct)}">${d.qld.drawdown_pct.toFixed(1)}%</span>`],
-        ['RSI(14)', d.qld.rsi]]})}
-      ${card({k: 'VIX 공포지수', v: f(d.vix.price, 1), chg: d.vix.chg_pct, sub: [
-        ['상태', `<span class="${moodCls}">${mood}</span>`],
-        ['기준', '20 경계 / 30 공포']]})}
-      ${card({k: 'USD/KRW 환율', v: '₩' + f(d.fx.price, 1), chg: d.fx.chg_pct, sub: [
-        ['환헤지 감각', d.fx.price >= 1400 ? '고환율 — 분할 환전' : '중립']]})}
+    <div class="main">
+      <div class="card">
+        <div class="k">QQQ RSI (14)</div>
+        <div class="v">${d.qqq.rsi.toFixed(1)}</div>
+        <div class="state ${rm[1]}">${rm[0]}</div>
+        <div class="sub"><span>실탄 게이트 35</span><b>${d.qqq.rsi < 35
+          ? '<span class="up">열림</span>'
+          : (d.qqq.rsi - 35).toFixed(1) + 'p 더 하락'}</b></div>
+        <div class="sub"><span>QLD RSI</span><b>${d.track.find(t => t.name.startsWith('QLD')).rsi.toFixed(1)}</b></div>
+      </div>
+      <div class="card">
+        <div class="k">VIX 공포지수</div>
+        <div class="v">${d.vix.price.toFixed(2)}</div>
+        <div class="state ${vm[1]}">${vm[0]} <span class="dim" style="font-weight:500">${pct(d.vix.chg_pct)}</span></div>
+        <div class="sub"><span>경계 / 공포 기준</span><b>20 / 30</b></div>
+        <div class="sub"><span>해석</span><b>${d.vix.price >= 20 ? '변동성 확대' : '평시 수준'}</b></div>
+      </div>
+      <div class="card">
+        <div class="k">QQQ 52주 고점대비</div>
+        <div class="v ${cls(d.qqq.drawdown_pct)}">${d.qqq.drawdown_pct.toFixed(1)}%</div>
+        <div class="state ${dm[1]}">${dm[0]}</div>
+        <div class="sub"><span>현재가 / 52주 고점</span><b>$${f(d.qqq.price)} / $${f(d.qqq.high52)}</b></div>
+        <div class="sub"><span>다음 트리거 (−10%)</span><b>$${f(d.triggers['-10'])}</b></div>
+      </div>
     </div>
 
-    <table>
-      <caption>매수 단계 — 단계는 고점대비 하락률이 정하고, RSI는 2단계에서만 AND 게이트로 붙는다.
+    <h3>매수 단계</h3>
+    <div class="scroll"><table>
+      <caption>단계는 고점대비 하락률이 정하고, RSI는 2단계에서만 AND 게이트로 붙는다.
         가격은 52주 고점 $${f(d.qqq.high52)} 기준으로 매 갱신마다 재계산</caption>
-      <tr><th>단계</th><th>조건</th><th>QQQ 트리거</th><th>행동</th></tr>
+      <tr><th>단계</th><th>조건</th><th class="num">QQQ 트리거</th><th>행동</th></tr>
       ${d.ladder.map(s => {
         const hit = s.pct != null && d.qqq.price <= d.triggers[s.pct];
         return `<tr class="${s.n === d.stage.n ? 'cur' : s.n < d.stage.n ? 'past' : ''}">
-        <td class="n"><span class="s${s.n}">■</span> ${s.n} · ${s.label}${s.n === d.stage.n ? ' ←' : ''}</td>
-        <td class="n">${s.cond}</td>
-        <td class="n ${hit ? 'hit' : ''}">${s.pct == null ? '—' : '$' + f(d.triggers[s.pct]) + ' 이하'}</td>
-        <td>${s.action}</td></tr>`;
+          <td><span class="s${s.n}">■</span> ${s.n} · ${s.label}${s.n === d.stage.n ? ' ←' : ''}</td>
+          <td>${s.cond}</td>
+          <td class="num ${hit ? 'hit' : ''}">${s.pct == null ? '—' : '$' + f(d.triggers[s.pct]) + ' 이하'}</td>
+          <td>${s.action}</td></tr>`;
       }).join('')}
-    </table>`;
+    </table></div>
+
+    <h3>지수 트래킹</h3>
+    <div class="scroll"><table>
+      <caption>52주 고점대비는 각 종목 자신의 고점 기준. 회색 날짜는 기준일이 QQQ와 다른 행(한국장·환율은 하루 앞설 수 있다)</caption>
+      <tr><th>지수</th><th class="num">현재가</th><th class="num">전일대비</th>
+          <th class="num">52주 고점대비</th><th class="num">RSI(14)</th></tr>
+      ${d.track.map(t => {
+        const rm2 = rsiMood(t.rsi);
+        return `<tr>
+          <td>${t.name}${t.asof !== d.asof ? ` <span class="dim">${t.asof.slice(5)}</span>` : ''}</td>
+          <td class="num">${t.unit}${f(t.price)}</td>
+          <td class="num ${cls(t.chg_pct)}">${pct(t.chg_pct)}</td>
+          <td class="num ${cls(t.drawdown_pct)}">${t.drawdown_pct.toFixed(1)}%</td>
+          <td class="num ${rm2[1]}">${t.rsi.toFixed(1)}</td></tr>`;
+      }).join('')}
+    </table></div>`;
 }).catch(e => {
   document.getElementById('meta').textContent = '데이터 로드 실패';
-  document.getElementById('app').innerHTML = `<div class="card">data.json을 못 읽었다: ${e}</div>`;
+  document.getElementById('app').innerHTML = `<div class="main"><div class="card">data.json을 못 읽었다: ${e}</div></div>`;
 });
 </script>
 </body>
