@@ -1,20 +1,20 @@
 {
-  "updated": "2026-08-24T12:50:58+00:00",
-  "asof": "2026-08-21",
+  "updated": "2026-08-24T22:39:31+00:00",
+  "asof": "2026-08-24",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 713.44,
-    "chg_pct": 0.35,
+    "price": 706.32,
+    "chg_pct": -1.0,
     "high52": 745.34,
     "low52": 557.67,
-    "drawdown_pct": -4.3,
-    "rsi": 58.0,
-    "asof": "2026-08-21"
+    "drawdown_pct": -5.2,
+    "rsi": 36.8,
+    "asof": "2026-08-24"
   },
   "vix": {
-    "price": 15.9,
-    "chg_pct": 5.09
+    "price": 15.85,
+    "chg_pct": 4.76
   },
   "stage": {
     "n": 1,
@@ -62,51 +62,51 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 713.44,
-      "chg_pct": 0.35,
+      "price": 706.32,
+      "chg_pct": -1.0,
       "high52": 745.34,
       "low52": 557.67,
-      "drawdown_pct": -4.3,
-      "rsi": 58.0,
-      "asof": "2026-08-21"
+      "drawdown_pct": -5.2,
+      "rsi": 36.8,
+      "asof": "2026-08-24"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 89.53,
-      "chg_pct": 0.65,
+      "price": 87.72,
+      "chg_pct": -2.02,
       "high52": 100.46,
       "low52": 57.12,
-      "drawdown_pct": -10.9,
-      "rsi": 56.9,
-      "asof": "2026-08-21"
+      "drawdown_pct": -12.7,
+      "rsi": 36.0,
+      "asof": "2026-08-24"
     },
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7674.37,
-      "chg_pct": 0.43,
+      "price": 7652.86,
+      "chg_pct": -0.28,
       "high52": 7798.99,
       "low52": 6343.72,
-      "drawdown_pct": -1.6,
-      "rsi": 56.9,
-      "asof": "2026-08-21"
+      "drawdown_pct": -1.9,
+      "rsi": 40.0,
+      "asof": "2026-08-24"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 26180.46,
-      "chg_pct": 0.43,
+      "price": 25980.19,
+      "chg_pct": -0.76,
       "high52": 27093.9,
       "low52": 20794.64,
-      "drawdown_pct": -3.4,
-      "rsi": 54.8,
-      "asof": "2026-08-21"
+      "drawdown_pct": -4.1,
+      "rsi": 36.9,
+      "asof": "2026-08-24"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1382.09,
+      "price": 1382.06,
       "chg_pct": -0.63,
       "high52": 1554.48,
       "low52": 1377.64,
@@ -128,13 +128,13 @@
     {
       "name": "코스피",
       "unit": "",
-      "price": 6696.96,
-      "chg_pct": -3.12,
+      "price": 6912.95,
+      "chg_pct": 0.88,
       "high52": 9114.55,
       "low52": 3130.09,
-      "drawdown_pct": -26.5,
-      "rsi": 58.6,
-      "asof": "2026-08-24"
+      "drawdown_pct": -24.2,
+      "rsi": 55.9,
+      "asof": "2026-08-21"
     }
   ],
   "last_seen": {
