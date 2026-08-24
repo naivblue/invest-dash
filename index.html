@@ -34,8 +34,7 @@ h1 span{color:var(--dim);font-weight:500}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 17px}
 .card .k{font-size:12px;color:var(--dim);letter-spacing:.02em;margin-bottom:9px}
 .card .v{font-size:27px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
-.card .chg{font-size:13px;font-weight:600;margin-top:5px;min-height:18px}
-.card .chg.dim{color:var(--dim);font-weight:500}
+.card .chg{font-size:13px;font-weight:600;margin-top:5px}
 .card .sub{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
   font-size:12.5px;color:var(--dim);display:flex;justify-content:space-between;gap:10px}
 .card .sub b{color:var(--tx);font-weight:600}
@@ -69,13 +68,11 @@ const sign = n => (n > 0 ? '+' : '') + n.toFixed(2) + '%';
 const cls = n => n > 0 ? 'up' : n < 0 ? 'down' : '';
 
 const vixMood = v => v >= 30 ? ['공포', 'up'] : v >= 20 ? ['경계', ''] : ['평온', 'down'];
-const rsiMood = v => v <= 30 ? ['과매도', 'down'] : v >= 70 ? ['과열', 'up'] : ['중립', ''];
 
-function card({k, v, chg, note, sub}) {
+function card({k, v, chg, sub}) {
   const rows = (sub || []).map(([a, b]) => `<div class="sub"><span>${a}</span><b>${b}</b></div>`).join('');
-  const head = chg == null ? `<div class="chg dim">${note || ''}</div>`
-                           : `<div class="chg ${cls(chg)}">${sign(chg)}</div>`;
-  return `<div class="card"><div class="k">${k}</div><div class="v">${v}</div>${head}${rows}</div>`;
+  return `<div class="card"><div class="k">${k}</div><div class="v">${v}</div>
+    <div class="chg ${cls(chg)}">${sign(chg)}</div>${rows}</div>`;
 }
 
 fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
@@ -93,12 +90,7 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
     <div class="grid">
       ${card({k: 'QQQ', v: '$' + f(d.qqq.price), chg: d.qqq.chg_pct, sub: [
         ['52주 고점대비', `<span class="${cls(d.qqq.drawdown_pct)}">${d.qqq.drawdown_pct.toFixed(1)}%</span>`],
-        ['52주 저점', '$' + f(d.qqq.low52)]]})}
-      ${card({k: 'QQQ RSI(14)', v: f(d.qqq.rsi, 1), note: `QLD ${f(d.qld.rsi, 1)}`, sub: [
-        ['상태', `<span class="${rsiMood(d.qqq.rsi)[1]}">${rsiMood(d.qqq.rsi)[0]}</span>`],
-        ['실탄 게이트(35)', d.qqq.rsi < 35
-          ? '<span class="up">열림</span>'
-          : `닫힘 (${(d.qqq.rsi - 35).toFixed(1)}p 더 하락)`]]})}
+        ['RSI(14)', d.qqq.rsi]]})}
       ${card({k: 'QLD (2x)', v: '$' + f(d.qld.price), chg: d.qld.chg_pct, sub: [
         ['52주 고점대비', `<span class="${cls(d.qld.drawdown_pct)}">${d.qld.drawdown_pct.toFixed(1)}%</span>`],
         ['RSI(14)', d.qld.rsi]]})}
