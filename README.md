@@ -2,7 +2,7 @@
 
 QQQ / QLD 매수 신호 대시보드 — https://naivblue.github.io/invest-dash/
 
-평일 미국장 마감 후 GitHub Actions가 `update.py`를 돌려 `data.json`을 갱신하고,
+매일 2회(한국장 마감 16:00 KST · 미국장 마감 07:10 KST) GitHub Actions가 `update.py`를 돌려 `data.json`을 갱신하고,
 `index.html`이 그걸 읽어 그린다. 빌드 스텝 없음.
 
 | 지표 | 출처 |

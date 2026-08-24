@@ -2,7 +2,9 @@ name: update data
 
 on:
   schedule:
-    - cron: "10 22 * * 1-5"   # UTC 22:10 = 미국장 마감 후 (KST 익일 07:10)
+    # 매일 2회. 한국장·미국장 마감 시각이 달라서 한 번만 돌면 한쪽이 하루 묵는다.
+    - cron: "0 7 * * *"     # UTC 07:00 = KST 16:00 — 한국장 마감 후 (코스피·삼성전자·환율)
+    - cron: "10 22 * * *"   # UTC 22:10 = KST 익일 07:10 — 미국장 마감 후 (QQQ·QLD·S&P·나스닥·VIX)
   workflow_dispatch:
 
 permissions:
