@@ -47,6 +47,11 @@ th,td{padding:11px 15px;text-align:left;border-bottom:1px solid var(--line)}
 th{font-size:12px;color:var(--dim);font-weight:600;background:#12161d}
 tr:last-child td{border-bottom:none}
 td.hit{color:var(--warn);font-weight:600}
+tr.cur{background:#1c222e}
+tr.cur td{color:var(--tx);font-weight:600}
+tr.past td{color:var(--dim)}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+table + table{margin-top:14px}
 footer{margin-top:26px;font-size:11.5px;color:var(--dim);line-height:1.7}
 </style>
 </head>
@@ -100,6 +105,14 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
       ${card({k: 'USD/KRW 환율', v: '₩' + f(d.fx.price, 1), chg: d.fx.chg_pct, sub: [
         ['환헤지 감각', d.fx.price >= 1400 ? '고환율 — 분할 환전' : '중립']]})}
     </div>
+
+    <table>
+      <caption>매수 단계 사다리 — 단계는 고점대비 하락률이 정하고, RSI는 2단계에서만 AND 게이트로 붙는다</caption>
+      <tr><th>단계</th><th>조건 (QQQ 고점대비)</th><th>행동</th></tr>
+      ${d.ladder.map(s => `<tr class="${s.n === d.stage.n ? 'cur' : s.n < d.stage.n ? 'past' : ''}">
+        <td class="n"><span class="s${s.n}">■</span> ${s.n} · ${s.label}${s.n === d.stage.n ? ' ←' : ''}</td>
+        <td class="n">${s.cond}</td><td>${s.action}</td></tr>`).join('')}
+    </table>
 
     <table>
       <caption>QLD 매수 트리거 — QQQ 52주 고점 $${f(d.qqq.high52)} 기준, 매 갱신마다 재계산</caption>
