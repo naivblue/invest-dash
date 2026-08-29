@@ -1,20 +1,20 @@
 {
-  "updated": "2026-08-28T19:19:28+00:00",
+  "updated": "2026-08-29T03:40:51+00:00",
   "asof": "2026-08-28",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 715.88,
-    "chg_pct": -0.73,
+    "price": 716.43,
+    "chg_pct": -0.65,
     "high52": 745.34,
     "low52": 557.67,
-    "drawdown_pct": -4.0,
-    "rsi": 51.5,
+    "drawdown_pct": -3.9,
+    "rsi": 51.8,
     "asof": "2026-08-28"
   },
   "vix": {
-    "price": 14.52,
-    "chg_pct": 0.07
+    "price": 14.43,
+    "chg_pct": -0.55
   },
   "stage": {
     "n": 1,
@@ -62,45 +62,45 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 715.88,
-      "chg_pct": -0.73,
+      "price": 716.43,
+      "chg_pct": -0.65,
       "high52": 745.34,
       "low52": 557.67,
-      "drawdown_pct": -4.0,
-      "rsi": 51.5,
+      "drawdown_pct": -3.9,
+      "rsi": 51.8,
       "asof": "2026-08-28"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 90.03,
-      "chg_pct": -1.48,
+      "price": 90.17,
+      "chg_pct": -1.32,
       "high52": 100.46,
       "low52": 57.12,
-      "drawdown_pct": -10.4,
-      "rsi": 50.5,
+      "drawdown_pct": -10.2,
+      "rsi": 50.8,
       "asof": "2026-08-28"
     },
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7708.5,
-      "chg_pct": -0.29,
+      "price": 7711.76,
+      "chg_pct": -0.25,
       "high52": 7798.99,
       "low52": 6343.72,
-      "drawdown_pct": -1.2,
-      "rsi": 55.9,
+      "drawdown_pct": -1.1,
+      "rsi": 56.2,
       "asof": "2026-08-28"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 26385.74,
-      "chg_pct": -0.59,
+      "price": 26402.42,
+      "chg_pct": -0.52,
       "high52": 27093.9,
       "low52": 20794.64,
       "drawdown_pct": -2.6,
-      "rsi": 53.8,
+      "rsi": 54.1,
       "asof": "2026-08-28"
     },
     {
@@ -117,13 +117,13 @@
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1378.81,
-      "chg_pct": -0.34,
+      "price": 1371.5,
+      "chg_pct": -0.65,
       "high52": 1554.48,
-      "low52": 1377.64,
-      "drawdown_pct": -11.3,
-      "rsi": 23.7,
-      "asof": "2026-08-28"
+      "low52": 1371.5,
+      "drawdown_pct": -11.8,
+      "rsi": 21.6,
+      "asof": "2026-08-29"
     },
     {
       "name": "삼성전자",
