@@ -61,13 +61,13 @@ footer{margin-top:8px;font-size:11.5px;color:var(--dim);line-height:1.7}
 <body>
 <div class="wrap">
   <header>
-    <h1>Market Dash <span>· QQQ / QLD 매수 신호</span></h1>
+    <h1>Market Dash <span>· QLD 매수 신호</span></h1>
     <div class="meta" id="meta">불러오는 중…</div>
   </header>
   <div id="app"></div>
   <footer>
     데이터: Yahoo Finance (yfinance) · 매일 2회 자동 갱신(한국장 마감 16:00 KST / 미국장 마감 07:10 KST) · 종가 기준(실시간 아님)<br>
-    단계 판정은 QQQ 52주 고점대비 하락률이 결정하고, −10%대 구간에서만 RSI 35 미만이 AND 게이트로 붙는다. 투자 권유 아님.
+    메인 지표는 실제 매수 대상인 <b>QLD</b> 기준으로 표시하되, <b>단계 판정은 QQQ</b>가 한다 — 사다리 임계값(−10/−20/−30)이 QQQ 기준으로 설계돼 있어 2배로 움직이는 QLD에 그대로 쓰면 너무 일찍 발동한다. −10%대 구간에서만 QQQ RSI 35 미만이 AND 게이트로 붙는다. 투자 권유 아님.
   </footer>
 </div>
 <script>
@@ -92,7 +92,7 @@ const ddMood  = v => v <= -30 ? ['4단계 구간', 'up'] : v <= -20 ? ['3단계 
                    : v <= -10 ? ['−10% 돌파', 'warn'] : ['조정 전', 'ok'];
 
 fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
-  const rm = rsiMood(d.qqq.rsi), vm = vixMood(d.vix.price), dm = ddMood(d.qqq.drawdown_pct);
+  const rmL = rsiMood(d.qld.rsi), vm = vixMood(d.vix.price), dm = ddMood(d.qqq.drawdown_pct);
   document.getElementById('meta').textContent =
     `기준일 ${d.asof} · 갱신 ${d.updated.slice(0, 16).replace('T', ' ')} UTC`;
 
@@ -105,13 +105,13 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
 
     <div class="main">
       <div class="card">
-        <div class="k">QQQ RSI (14)</div>
-        <div class="v">${d.qqq.rsi.toFixed(1)}</div>
-        <div class="state ${rm[1]}">${rm[0]}</div>
-        <div class="sub"><span>실탄 게이트 35</span><b>${d.qqq.rsi < 35
-          ? '<span class="up">열림</span>'
-          : (d.qqq.rsi - 35).toFixed(1) + 'p 더 하락'}</b></div>
-        <div class="sub"><span>QLD RSI</span><b>${d.track.find(t => t.name.startsWith('QLD')).rsi.toFixed(1)}</b></div>
+        <div class="k">QLD RSI (14)</div>
+        <div class="v">${d.qld.rsi.toFixed(1)}</div>
+        <div class="state ${rmL[1]}">${rmL[0]}</div>
+        <div class="sub"><span>QQQ RSI <span class="dim">(게이트 35)</span></span><b>${d.qqq.rsi.toFixed(1)} ${
+          d.qqq.rsi < 35 ? '<span class="up">열림</span>'
+                         : '<span class="dim">' + (d.qqq.rsi - 35).toFixed(1) + 'p 더</span>'}</b></div>
+        <div class="sub"><span>QLD 현재가</span><b>$${f(d.qld.price)}</b></div>
       </div>
       <div class="card">
         <div class="k">VIX 공포지수</div>
@@ -121,11 +121,11 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
         <div class="sub"><span>해석</span><b>${d.vix.price >= 20 ? '변동성 확대' : '평시 수준'}</b></div>
       </div>
       <div class="card">
-        <div class="k">QQQ 52주 고점대비</div>
-        <div class="v ${cls(d.qqq.drawdown_pct)}">${d.qqq.drawdown_pct.toFixed(1)}%</div>
-        <div class="state ${dm[1]}">${dm[0]}</div>
-        <div class="sub"><span>현재가 / 52주 고점</span><b>$${f(d.qqq.price)} / $${f(d.qqq.high52)}</b></div>
-        <div class="sub"><span>다음 트리거 (−10%)</span><b>$${f(d.triggers['-10'])}</b></div>
+        <div class="k">QLD 52주 고점대비</div>
+        <div class="v ${cls(d.qld.drawdown_pct)}">${d.qld.drawdown_pct.toFixed(1)}%</div>
+        <div class="state ${dm[1]}">${dm[0]} <span class="dim" style="font-weight:500">QQQ ${d.qqq.drawdown_pct.toFixed(1)}%</span></div>
+        <div class="sub"><span>현재가 / 52주 고점</span><b>$${f(d.qld.price)} / $${f(d.qld.high52)}</b></div>
+        <div class="sub"><span>QLD 진입 <span class="dim">(QQQ −20%)</span></span><b>$${f(d.qld_triggers['-20'])}</b></div>
       </div>
     </div>
 
@@ -149,8 +149,10 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
     <div class="scroll"><table>
       <caption>단계는 고점대비 하락률이 정하고, RSI는 2단계에서만 AND 게이트로 붙는다.
         가격은 52주 고점 $${f(d.qqq.high52)} 기준으로 매 갱신마다 재계산.
-        마지막 도달은 같은 규칙을 QQQ 전체 역사(${d.history_from}~)에 적용해 찾은 값</caption>
-      <tr><th>단계</th><th>조건</th><th class="num">QQQ 트리거</th>
+        마지막 도달은 같은 규칙을 QQQ 전체 역사(${d.history_from}~)에 적용해 찾은 값.
+        <b>QLD 참고가</b>는 QLD 52주 고점 $${f(d.qld.high52)}에 2배를 선형 적용한 근사 —
+        레버리지 감쇠 때문에 실제로는 이보다 낮은 값에서 QQQ 트리거를 만난다</caption>
+      <tr><th>단계</th><th>조건</th><th class="num">QQQ 트리거</th><th class="num">QLD 참고가</th>
           <th class="num">마지막 도달</th><th>행동</th></tr>
       ${d.ladder.map(s => {
         const hit = s.pct != null && d.qqq.price <= d.triggers[s.pct];
@@ -158,6 +160,7 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
           <td><span class="s${s.n}">■</span> ${s.n} · ${s.label}${s.n === d.stage.n ? ' ←' : ''}</td>
           <td>${s.cond}</td>
           <td class="num ${hit ? 'hit' : ''}">${s.pct == null ? '—' : '$' + f(d.triggers[s.pct]) + ' 이하'}</td>
+          <td class="num dim">${s.pct == null ? '—' : '$' + f(d.qld_triggers[s.pct])}</td>
           <td class="num">${
             s.n === d.stage.n ? '<span class="warn">현재</span>'
             : !d.last_seen[s.n] ? '—'

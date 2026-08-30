@@ -131,6 +131,11 @@ def _selfcheck() -> None:
     names = [t[0] for t in TRACK]
     assert len(names) == len(set(names))          # 표시명 중복 = 표에서 구분 불가
     assert "QQQ" in names                          # 단계 판정이 QQQ에 의존
+    assert any(n.startswith("QLD") for n in names)  # 메인보드가 QLD 행을 찾는다
+    # QLD 트리거는 2x라 같은 단계에서 QQQ보다 더 깊다 (고점 100 가정)
+    ql = {p: 100 * (1 + 2 * p / 100) for p in (-10, -20, -30)}
+    assert ql[-10] > ql[-20] > ql[-30] > 0
+    assert ql[-20] == 60 and ql[-30] == 40
     assert "<" not in json.dumps(LADDER)   # 표에 그대로 꽂히므로 태그로 오해될 문자 금지
 
 
@@ -149,6 +154,7 @@ def main() -> None:
         )
 
     qqq = next(t for t in track if t["name"] == "QQQ")
+    qld = next(t for t in track if t["name"].startswith("QLD"))
     qqq_close = close["QQQ"].dropna()
     # 마지막 N단계는 2년치로는 안 잡힌다 (직전 4단계가 2023-01) → 전체 역사 별도 조회
     full = yf.download("QQQ", period="max", progress=False, auto_adjust=True)["Close"]
@@ -161,8 +167,15 @@ def main() -> None:
         "vix": quote(close[_VIX].dropna()),
         "stage": classify(qqq["drawdown_pct"], qqq["rsi"]),
         "ladder": LADDER,
+        "qld": qld,
         "triggers": {
             str(p): round(qqq["high52"] * (1 + p / 100), 2) for p in (-10, -20, -30)
+        },
+        # ponytail: 2x 선형 근사. 실제 QLD는 레버리지 감쇠 때문에 이보다 더 내려간
+        # 값에서 QQQ 트리거를 만난다 (하락이 길수록 괴리 커짐). 참고가로만 쓸 것.
+        # 정밀하게 하려면 QQQ·QLD 일별 수익률 동행 회귀로 경로를 시뮬레이션해야 한다.
+        "qld_triggers": {
+            str(p): round(qld["high52"] * (1 + 2 * p / 100), 2) for p in (-10, -20, -30)
         },
         "track": track,
         "last_seen": stage_history(full),
@@ -174,6 +187,7 @@ def main() -> None:
     print("마지막 도달:", {k: v["date"] for k, v in data["last_seen"].items()})
     print(f"stage {data['stage']['n']} · {data['stage']['label']} "
           f"| QQQ {qqq['price']} ({qqq['drawdown_pct']}%) RSI {qqq['rsi']} "
+          f"| QLD {qld['price']} ({qld['drawdown_pct']}%) RSI {qld['rsi']} "
           f"| VIX {data['vix']['price']} | {len(track)}종 트래킹")
 
 
