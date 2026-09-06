@@ -5,6 +5,7 @@ GitHub Actions가 평일 미국장 마감 후 실행 → 커밋 → Pages가 정
 from __future__ import annotations
 
 import json
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,6 +24,43 @@ TRACK = [
     ("코스피", "^KS11", ""),
 ]
 _VIX = "^VIX"
+
+# CNN Fear & Greed — 기본 UA는 418로 막히므로 브라우저 헤더가 필요하다.
+_FG_URL = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
+_FG_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Referer": "https://edition.cnn.com/",
+}
+
+
+def fg_label(score: float) -> str:
+    return ("극단적 공포" if score < 25 else "공포" if score < 45
+            else "중립" if score <= 55 else "탐욕" if score <= 75 else "극단적 탐욕")
+
+
+def fear_greed() -> dict | None:
+    """CNN Fear & Greed. 차단·장애면 None을 주고 대시보드가 카드를 통째로 뺀다.
+
+    ponytail: CNN 비공개 엔드포인트라 언젠가 막힐 수 있다. 그때 자체 지표를
+    만들 게 아니라 카드만 사라지면 되도록 실패를 삼킨다.
+    """
+    try:
+        req = urllib.request.Request(_FG_URL, headers=_FG_HEADERS)
+        raw = json.loads(urllib.request.urlopen(req, timeout=15).read())["fear_and_greed"]
+    except Exception as e:
+        print(f"fear&greed 조회 실패({e}) → 카드 생략")
+        return None
+    score = round(float(raw["score"]), 1)
+    return {
+        "score": score,
+        "label": fg_label(score),
+        "prev_close": round(float(raw["previous_close"]), 1),
+        "prev_week": round(float(raw["previous_1_week"]), 1),
+        "prev_month": round(float(raw["previous_1_month"]), 1),
+        "asof": raw["timestamp"][:10],
+    }
 
 
 def rsi(prices: pd.Series, period: int = 14) -> float:
@@ -137,6 +175,11 @@ def _selfcheck() -> None:
     assert ql[-10] > ql[-20] > ql[-30] > 0
     assert ql[-20] == 60 and ql[-30] == 40
     assert "<" not in json.dumps(LADDER)   # 표에 그대로 꽂히므로 태그로 오해될 문자 금지
+    # F&G 구간 경계 — 25/45/55/75. index.html의 fgRead가 45를 같이 쓴다.
+    assert [fg_label(v) for v in (10, 24.9, 25, 42, 44.9)] == \
+        ["극단적 공포", "극단적 공포", "공포", "공포", "공포"]
+    assert [fg_label(v) for v in (45, 55, 55.1, 75, 75.1)] == \
+        ["중립", "중립", "탐욕", "탐욕", "극단적 탐욕"]
 
 
 def main() -> None:
@@ -165,6 +208,7 @@ def main() -> None:
         "asof": str(qqq_close.index[-1].date()),
         "qqq": qqq,
         "vix": quote(close[_VIX].dropna()),
+        "fear_greed": fear_greed(),
         "stage": classify(qqq["drawdown_pct"], qqq["rsi"]),
         "ladder": LADDER,
         "qld": qld,
@@ -188,7 +232,10 @@ def main() -> None:
     print(f"stage {data['stage']['n']} · {data['stage']['label']} "
           f"| QQQ {qqq['price']} ({qqq['drawdown_pct']}%) RSI {qqq['rsi']} "
           f"| QLD {qld['price']} ({qld['drawdown_pct']}%) RSI {qld['rsi']} "
-          f"| VIX {data['vix']['price']} | {len(track)}종 트래킹")
+          f"| VIX {data['vix']['price']}"
+          + (f" | F&G {data['fear_greed']['score']} {data['fear_greed']['label']}"
+             if data["fear_greed"] else " | F&G 없음")
+          + f" | {len(track)}종 트래킹")
 
 
 if __name__ == "__main__":

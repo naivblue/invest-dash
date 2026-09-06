@@ -32,7 +32,7 @@ h1 span{color:var(--dim);font-weight:500}
 .s1{color:var(--ok)} .s2{color:var(--warn)} .s3{color:#e8802f} .s4{color:var(--up)}
 
 /* 메인 3지표 — 판단에 직접 쓰는 값만 크게 */
-.main{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:22px}
+.main{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:12px;margin-bottom:22px}
 .main .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
 .main .k{font-size:12px;color:var(--dim);margin-bottom:10px}
 .main .v{font-size:42px;font-weight:700;letter-spacing:-.035em;line-height:1}
@@ -40,6 +40,9 @@ h1 span{color:var(--dim);font-weight:500}
 .main .sub{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);
   font-size:12.5px;color:var(--dim);display:flex;justify-content:space-between;gap:10px}
 .main .sub b{color:var(--tx);font-weight:600}
+.main .read{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--dim);line-height:1.55}
+.main .read b{color:var(--tx);font-weight:600}
 .up{color:var(--up)} .down{color:var(--down)} .warn{color:var(--warn)} .ok{color:var(--ok)}
 
 h3{font-size:13px;font-weight:600;color:var(--dim);margin:0 0 9px 2px;letter-spacing:.01em}
@@ -88,11 +91,21 @@ const ago = iso => {
 
 const rsiMood = v => v <= 30 ? ['과매도', 'down'] : v >= 70 ? ['과열', 'up'] : ['중립', ''];
 const vixMood = v => v >= 30 ? ['공포', 'up'] : v >= 20 ? ['경계', 'warn'] : ['평온', 'ok'];
+const fgMood  = v => v < 45 ? ['up'] : v <= 55 ? [''] : ['warn'];
+
+// 같은 '공포'라도 VIX가 낮으냐 높으냐에 따라 뜻이 정반대다. 둘을 대조해 성격을 가른다.
+const fgRead = (fg, vix) =>
+    fg < 45 && vix < 20 ? '<b>내부 약화</b> — 지수는 버티는데 폭·모멘텀이 나쁘다. 소수 대형주가 떠받치는 중이라 <b>가격 할인 신호가 아니다</b>'
+  : fg < 45             ? '<b>실제 공포</b> — 변동성이 함께 뛰었다. 가격 할인 구간에 가깝다'
+  : fg > 55 && vix >= 20 ? '<b>불안한 상승</b> — 탐욕에 변동성이 붙었다. 되돌림 경계'
+  : fg > 55             ? '<b>과열</b> — 신규 진입보다 적립 유지'
+  :                       '<b>중립</b> — 심리 쏠림 없음';
 const ddMood  = v => v <= -30 ? ['4단계 구간', 'up'] : v <= -20 ? ['3단계 구간', 'up']
                    : v <= -10 ? ['−10% 돌파', 'warn'] : ['조정 전', 'ok'];
 
 fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
   const rmL = rsiMood(d.qld.rsi), vm = vixMood(d.vix.price), dm = ddMood(d.qqq.drawdown_pct);
+  const fg = d.fear_greed;
   document.getElementById('meta').textContent =
     `기준일 ${d.asof} · 갱신 ${d.updated.slice(0, 16).replace('T', ' ')} UTC`;
 
@@ -120,6 +133,14 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
         <div class="sub"><span>경계 / 공포 기준</span><b>20 / 30</b></div>
         <div class="sub"><span>해석</span><b>${d.vix.price >= 20 ? '변동성 확대' : '평시 수준'}</b></div>
       </div>
+      ${fg ? `
+      <div class="card">
+        <div class="k">Fear &amp; Greed <span class="dim">(CNN)</span></div>
+        <div class="v">${fg.score.toFixed(0)}</div>
+        <div class="state ${fgMood(fg.score)[0]}">${fg.label} <span class="dim" style="font-weight:500">전일 ${fg.prev_close.toFixed(0)}</span></div>
+        <div class="sub"><span>1주 / 1개월 전</span><b>${fg.prev_week.toFixed(0)} / ${fg.prev_month.toFixed(0)}</b></div>
+        <div class="read">${fgRead(fg.score, d.vix.price)}</div>
+      </div>` : ''}
       <div class="card">
         <div class="k">QLD 52주 고점대비</div>
         <div class="v ${cls(d.qld.drawdown_pct)}">${d.qld.drawdown_pct.toFixed(1)}%</div>
