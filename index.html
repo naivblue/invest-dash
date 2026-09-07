@@ -43,6 +43,30 @@ h1 span{color:var(--dim);font-weight:500}
 .main .read{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
   font-size:12.5px;color:var(--dim);line-height:1.55}
 .main .read b{color:var(--tx);font-weight:600}
+
+/* 심리 지표 해석 — 점수만으론 오독한다. 눈금·판정·기준을 한 칸에 모은다 */
+.reading{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:18px 20px 16px;margin-bottom:22px}
+.reading .k{font-size:12px;color:var(--dim);margin-bottom:14px}
+.gbar{position:relative;height:7px;border-radius:99px;
+  background:linear-gradient(90deg,var(--up),var(--warn) 25%,#39414f 45%,#39414f 55%,var(--warn) 75%,var(--up))}
+.gbar i{position:absolute;top:-4px;width:3px;height:15px;background:var(--tx);
+  border-radius:2px;transform:translateX(-1.5px);box-shadow:0 0 0 2.5px var(--card)}
+.gbar i::after{content:attr(data-v);position:absolute;top:-19px;left:50%;transform:translateX(-50%);
+  font-size:11px;font-weight:700;color:var(--tx)}
+.gzone{display:flex;margin-top:7px;font-size:10.5px;color:var(--dim)}
+.gzone span{text-align:center;border-left:1px solid var(--line);padding-top:2px}
+.gzone span:first-child{border-left:0}
+.verdict{margin:16px 0 0;font-size:13.5px;line-height:1.6;color:var(--dim)}
+.verdict b{color:var(--tx);font-weight:600}
+.crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-top:15px}
+.crit div{background:var(--card);padding:10px 13px}
+.crit span{display:block;font-size:11px;color:var(--dim);margin-bottom:3px}
+.crit b{font-size:17px;font-weight:700;letter-spacing:-.02em}
+.crit em{display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:3px}
+.hist{margin:12px 0 0;font-size:11.5px;color:var(--dim);line-height:1.5}
+.hist b{color:var(--tx);font-weight:600}
 .up{color:var(--up)} .down{color:var(--down)} .warn{color:var(--warn)} .ok{color:var(--ok)}
 
 h3{font-size:13px;font-weight:600;color:var(--dim);margin:0 0 9px 2px;letter-spacing:.01em}
@@ -139,7 +163,7 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
         <div class="v">${fg.score.toFixed(0)}</div>
         <div class="state ${fgMood(fg.score)[0]}">${fg.label} <span class="dim" style="font-weight:500">전일 ${fg.prev_close.toFixed(0)}</span></div>
         <div class="sub"><span>1주 / 1개월 전</span><b>${fg.prev_week.toFixed(0)} / ${fg.prev_month.toFixed(0)}</b></div>
-        <div class="read">${fgRead(fg.score, d.vix.price)}</div>
+        <div class="sub"><span>구간</span><b>${fg.score < 25 ? '극단적 공포' : fg.score < 45 ? '공포 (25~45)' : fg.score <= 55 ? '중립' : fg.score <= 75 ? '탐욕' : '극단적 탐욕'}</b></div>
       </div>` : ''}
       <div class="card">
         <div class="k">QLD 52주 고점대비</div>
@@ -149,6 +173,26 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
         <div class="sub"><span>QLD 진입 <span class="dim">(QQQ −20%)</span></span><b>$${f(d.qld_triggers['-20'])}</b></div>
       </div>
     </div>
+
+    ${fg ? `
+    <div class="reading">
+      <div class="k">심리 지표 해석</div>
+      <div class="gbar"><i style="left:${fg.score}%" data-v="${fg.score.toFixed(0)}"></i></div>
+      <div class="gzone">
+        <span style="flex:25">극단적 공포<br>0–25</span>
+        <span style="flex:20">공포<br>25–45</span>
+        <span style="flex:10">중립<br>45–55</span>
+        <span style="flex:20">탐욕<br>55–75</span>
+        <span style="flex:25">극단적 탐욕<br>75–100</span>
+      </div>
+      <p class="verdict">${fgRead(fg.score, d.vix.price)}</p>
+      <div class="crit">
+        <div><span>Fear &amp; Greed</span><b class="${fg.score <= 25 ? 'up' : ''}">${fg.score.toFixed(0)}</b><em>매수 신호 25 이하</em></div>
+        <div><span>VIX</span><b class="${d.vix.price >= 30 ? 'up' : ''}">${d.vix.price.toFixed(1)}</b><em>매수 신호 30 이상</em></div>
+        <div><span>QQQ 고점대비</span><b class="${d.qqq.drawdown_pct <= -10 ? 'up' : ''}">${d.qqq.drawdown_pct.toFixed(1)}%</b><em>2단계 −10% 이하</em></div>
+      </div>
+      <p class="hist">셋이 함께 극단으로 갈 때가 실제 기회다. 역사적 저점 — 2020.3 코로나 <b>2</b> · 2022 하락장 <b>16~20</b> · 심리만 낮고 VIX가 잠잠하면 할인이 아니라 <b>내부 약화</b>다.</p>
+    </div>` : ''}
 
     <h3>지수 트래킹</h3>
     <div class="scroll"><table>
