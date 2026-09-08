@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-08T00:16:18+00:00",
+  "updated": "2026-09-08T12:02:44+00:00",
   "asof": "2026-09-04",
   "qqq": {
     "name": "QQQ",
@@ -13,16 +13,16 @@
     "asof": "2026-09-04"
   },
   "vix": {
-    "price": 15.3,
-    "chg_pct": 5.3
+    "price": 15.76,
+    "chg_pct": 3.01
   },
   "fear_greed": {
     "score": 41.9,
     "label": "공포",
-    "prev_close": 35.2,
-    "prev_week": 52.3,
-    "prev_month": 60.0,
-    "asof": "2026-09-04"
+    "prev_close": 41.9,
+    "prev_week": 30.9,
+    "prev_month": 64.4,
+    "asof": "2026-09-08"
   },
   "stage": {
     "n": 1,
@@ -141,35 +141,35 @@
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1338.27,
-      "chg_pct": -0.5,
+      "price": 1341.92,
+      "chg_pct": -0.23,
       "high52": 1554.48,
-      "low52": 1338.27,
-      "drawdown_pct": -13.9,
-      "rsi": 17.4,
+      "low52": 1341.92,
+      "drawdown_pct": -13.7,
+      "rsi": 18.1,
       "asof": "2026-09-08"
     },
     {
       "name": "삼성전자",
       "unit": "₩",
-      "price": 270000.0,
-      "chg_pct": 5.68,
+      "price": 269500.0,
+      "chg_pct": -0.19,
       "high52": 362100.66,
       "low52": 66762.2,
-      "drawdown_pct": -25.4,
-      "rsi": 54.1,
-      "asof": "2026-09-07"
+      "drawdown_pct": -25.6,
+      "rsi": 54.0,
+      "asof": "2026-09-08"
     },
     {
       "name": "코스피",
       "unit": "",
-      "price": 6687.21,
-      "chg_pct": 1.64,
+      "price": 6954.52,
+      "chg_pct": -0.58,
       "high52": 9114.55,
       "low52": 3142.93,
-      "drawdown_pct": -26.6,
-      "rsi": 48.6,
-      "asof": "2026-09-04"
+      "drawdown_pct": -23.7,
+      "rsi": 54.0,
+      "asof": "2026-09-08"
     }
   ],
   "last_seen": {
