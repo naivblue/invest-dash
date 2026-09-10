@@ -1,28 +1,28 @@
 {
-  "updated": "2026-09-10T00:08:32+00:00",
-  "asof": "2026-09-08",
+  "updated": "2026-09-10T12:07:13+00:00",
+  "asof": "2026-09-09",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 718.36,
-    "chg_pct": -0.08,
+    "price": 716.31,
+    "chg_pct": -0.29,
     "high52": 745.34,
     "low52": 557.67,
-    "drawdown_pct": -3.6,
-    "rsi": 53.2,
-    "asof": "2026-09-08"
+    "drawdown_pct": -3.9,
+    "rsi": 51.6,
+    "asof": "2026-09-09"
   },
   "vix": {
-    "price": 16.46,
-    "chg_pct": 4.71
+    "price": 16.78,
+    "chg_pct": 1.94
   },
   "fear_greed": {
-    "score": 39.0,
+    "score": 36.3,
     "label": "공포",
-    "prev_close": 40.6,
-    "prev_week": 33.0,
-    "prev_month": 64.4,
-    "asof": "2026-09-09"
+    "prev_close": 39.0,
+    "prev_week": 43.9,
+    "prev_month": 64.7,
+    "asof": "2026-09-10"
   },
   "stage": {
     "n": 1,
@@ -64,13 +64,13 @@
   "qld": {
     "name": "QLD (2x)",
     "unit": "$",
-    "price": 90.53,
-    "chg_pct": -0.17,
+    "price": 89.98,
+    "chg_pct": -0.61,
     "high52": 100.46,
     "low52": 57.12,
-    "drawdown_pct": -9.9,
-    "rsi": 52.2,
-    "asof": "2026-09-08"
+    "drawdown_pct": -10.4,
+    "rsi": 50.5,
+    "asof": "2026-09-09"
   },
   "triggers": {
     "-10": 670.81,
@@ -86,24 +86,24 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 718.36,
-      "chg_pct": -0.08,
+      "price": 716.31,
+      "chg_pct": -0.29,
       "high52": 745.34,
       "low52": 557.67,
-      "drawdown_pct": -3.6,
-      "rsi": 53.2,
-      "asof": "2026-09-08"
+      "drawdown_pct": -3.9,
+      "rsi": 51.6,
+      "asof": "2026-09-09"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 90.53,
-      "chg_pct": -0.17,
+      "price": 89.98,
+      "chg_pct": -0.61,
       "high52": 100.46,
       "low52": 57.12,
-      "drawdown_pct": -9.9,
-      "rsi": 52.2,
-      "asof": "2026-09-08"
+      "drawdown_pct": -10.4,
+      "rsi": 50.5,
+      "asof": "2026-09-09"
     },
     {
       "name": "S&P 500",
@@ -141,35 +141,35 @@
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1340.08,
-      "chg_pct": 0.06,
+      "price": 1343.48,
+      "chg_pct": 0.32,
       "high52": 1554.48,
       "low52": 1339.21,
-      "drawdown_pct": -13.8,
-      "rsi": 18.6,
+      "drawdown_pct": -13.6,
+      "rsi": 21.9,
       "asof": "2026-09-10"
     },
     {
       "name": "삼성전자",
       "unit": "₩",
-      "price": 269500.0,
-      "chg_pct": 0.0,
+      "price": 269000.0,
+      "chg_pct": -0.19,
       "high52": 362100.66,
       "low52": 66762.2,
-      "drawdown_pct": -25.6,
-      "rsi": 53.9,
-      "asof": "2026-09-09"
+      "drawdown_pct": -25.7,
+      "rsi": 53.8,
+      "asof": "2026-09-10"
     },
     {
       "name": "코스피",
       "unit": "",
-      "price": 6954.52,
-      "chg_pct": -0.58,
+      "price": 7033.92,
+      "chg_pct": -0.25,
       "high52": 9114.55,
       "low52": 3142.93,
-      "drawdown_pct": -23.7,
-      "rsi": 54.0,
-      "asof": "2026-09-08"
+      "drawdown_pct": -22.8,
+      "rsi": 55.6,
+      "asof": "2026-09-10"
     }
   ],
   "last_seen": {
