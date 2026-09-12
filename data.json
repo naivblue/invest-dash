@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-11T12:05:41+00:00",
+  "updated": "2026-09-12T00:12:17+00:00",
   "asof": "2026-09-10",
   "qqq": {
     "name": "QQQ",
@@ -13,11 +13,11 @@
     "asof": "2026-09-10"
   },
   "vix": {
-    "price": 17.08,
-    "chg_pct": -4.26
+    "price": 15.84,
+    "chg_pct": -11.21
   },
   "fear_greed": {
-    "score": 31.2,
+    "score": 33.3,
     "label": "공포",
     "prev_close": 33.1,
     "prev_week": 45.2,
@@ -108,45 +108,45 @@
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7591.7,
-      "chg_pct": -0.58,
+      "price": 7656.98,
+      "chg_pct": 0.86,
       "high52": 7798.99,
       "low52": 6343.72,
-      "drawdown_pct": -2.7,
-      "rsi": 43.9,
-      "asof": "2026-09-10"
+      "drawdown_pct": -1.8,
+      "rsi": 50.1,
+      "asof": "2026-09-11"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 26081.72,
-      "chg_pct": -0.65,
+      "price": 26333.04,
+      "chg_pct": 0.96,
       "high52": 27093.9,
       "low52": 20794.64,
-      "drawdown_pct": -3.7,
-      "rsi": 47.0,
-      "asof": "2026-09-10"
+      "drawdown_pct": -2.8,
+      "rsi": 52.0,
+      "asof": "2026-09-11"
     },
     {
       "name": "미국 10년물(%)",
       "unit": "",
-      "price": 4.94,
-      "chg_pct": 2.21,
-      "high52": 4.94,
+      "price": 4.97,
+      "chg_pct": 0.63,
+      "high52": 4.97,
       "low52": 3.95,
       "drawdown_pct": 0.0,
-      "rsi": 71.9,
-      "asof": "2026-09-10"
+      "rsi": 73.5,
+      "asof": "2026-09-11"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1342.6,
-      "chg_pct": 0.26,
+      "price": 1341.05,
+      "chg_pct": 0.14,
       "high52": 1554.48,
       "low52": 1339.17,
-      "drawdown_pct": -13.6,
-      "rsi": 21.6,
+      "drawdown_pct": -13.7,
+      "rsi": 20.0,
       "asof": "2026-09-11"
     },
     {
@@ -163,13 +163,13 @@
     {
       "name": "코스피",
       "unit": "",
-      "price": 6909.91,
-      "chg_pct": -1.76,
+      "price": 7033.92,
+      "chg_pct": -0.25,
       "high52": 9114.55,
       "low52": 3142.93,
-      "drawdown_pct": -24.2,
-      "rsi": 52.4,
-      "asof": "2026-09-11"
+      "drawdown_pct": -22.8,
+      "rsi": 55.6,
+      "asof": "2026-09-10"
     }
   ],
   "last_seen": {
