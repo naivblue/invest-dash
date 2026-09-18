@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-17T12:29:20+00:00",
+  "updated": "2026-09-18T00:10:16+00:00",
   "asof": "2026-09-16",
   "qqq": {
     "name": "QQQ",
@@ -13,11 +13,11 @@
     "asof": "2026-09-16"
   },
   "vix": {
-    "price": 15.7,
-    "chg_pct": -11.35
+    "price": 15.44,
+    "chg_pct": -12.82
   },
   "fear_greed": {
-    "score": 26.1,
+    "score": 28.7,
     "label": "공포",
     "prev_close": 26.5,
     "prev_week": 32.2,
@@ -108,46 +108,46 @@
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7551.81,
-      "chg_pct": -0.45,
+      "price": 7637.76,
+      "chg_pct": 1.14,
       "high52": 7798.99,
       "low52": 6343.72,
-      "drawdown_pct": -3.2,
-      "rsi": 41.4,
-      "asof": "2026-09-16"
+      "drawdown_pct": -2.1,
+      "rsi": 49.6,
+      "asof": "2026-09-17"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 25978.43,
-      "chg_pct": -0.01,
+      "price": 26418.3,
+      "chg_pct": 1.69,
       "high52": 27093.9,
       "low52": 20794.64,
-      "drawdown_pct": -4.1,
-      "rsi": 45.2,
-      "asof": "2026-09-16"
+      "drawdown_pct": -2.5,
+      "rsi": 53.8,
+      "asof": "2026-09-17"
     },
     {
       "name": "미국 10년물(%)",
       "unit": "",
-      "price": 5.01,
-      "chg_pct": 0.2,
+      "price": 4.95,
+      "chg_pct": -1.18,
       "high52": 5.01,
       "low52": 3.95,
-      "drawdown_pct": 0.0,
-      "rsi": 74.2,
-      "asof": "2026-09-16"
+      "drawdown_pct": -1.2,
+      "rsi": 65.4,
+      "asof": "2026-09-17"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1378.08,
-      "chg_pct": 1.06,
+      "price": 1381.38,
+      "chg_pct": 0.35,
       "high52": 1554.48,
       "low52": 1339.17,
-      "drawdown_pct": -11.3,
-      "rsi": 50.2,
-      "asof": "2026-09-17"
+      "drawdown_pct": -11.1,
+      "rsi": 51.9,
+      "asof": "2026-09-18"
     },
     {
       "name": "삼성전자",
@@ -163,13 +163,13 @@
     {
       "name": "코스피",
       "unit": "",
-      "price": 6715.41,
-      "chg_pct": -0.04,
+      "price": 6717.97,
+      "chg_pct": 1.37,
       "high52": 9114.55,
-      "low52": 3205.12,
+      "low52": 3200.83,
       "drawdown_pct": -26.3,
-      "rsi": 47.8,
-      "asof": "2026-09-17"
+      "rsi": 48.1,
+      "asof": "2026-09-16"
     }
   ],
   "last_seen": {
