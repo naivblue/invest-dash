@@ -38,8 +38,11 @@ test('infinite-buying page preserves the recovered Claude v24 interface', async 
     '8/17부터 재계산',
     '체결 이력',
     'V2.0 규칙',
-    "const KEY='tqqq-v2-state-v3'",
-    "const ANCHOR0={d:'2026-09-16', avg:70.9638, sh:35}",
+    "const KEY='tqqq-v2-state-v4'",
+    '["2026-09-17",71.38,1]',
+    '["2026-09-18",72.64]',
+    'fx:1351.1',
+    "const ANCHOR0={d:'2026-09-18', avg:71.0204, sh:37}",
   ]) assert.match(html, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
