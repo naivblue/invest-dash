@@ -5,16 +5,18 @@ import test from 'node:test';
 const pages = [
   { file: 'index.html', title: 'Market Dash' },
   { file: 'asset-goals/index.html', title: '8억 목표 달성판' },
-  { file: 'infinite-buying/index.html', title: 'TQQQ 무한매수 계산기' },
+  { file: 'infinite-buying/index.html', title: 'TQQQ 무한매수 V2.0', standalone: true },
 ];
 
 for (const page of pages) {
   test(`${page.file} exposes the expected title and navigation`, async () => {
     const html = await readFile(new URL(`../${page.file}`, import.meta.url), 'utf8');
     assert.match(html, new RegExp(`<title>${page.title}</title>`));
-    assert.match(html, /data-site-nav/);
-    assert.match(html, /asset-goals\//);
-    assert.match(html, /infinite-buying\//);
+    if (!page.standalone) {
+      assert.match(html, /data-site-nav/);
+      assert.match(html, /asset-goals\//);
+      assert.match(html, /infinite-buying\//);
+    }
   });
 }
 
@@ -23,6 +25,22 @@ test('market dashboard inline script parses', async () => {
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script, 'inline script is present');
   assert.doesNotThrow(() => new Function(script));
+});
+
+test('infinite-buying page preserves the recovered Claude v24 interface', async () => {
+  const html = await readFile(new URL('../infinite-buying/index.html', import.meta.url), 'utf8');
+  for (const marker of [
+    '무한매수 주문 계산기',
+    '진행률',
+    '주문 3건 예약',
+    '오늘 밤 걸 주문',
+    '매수 체결 주수',
+    '8/17부터 재계산',
+    '체결 이력',
+    'V2.0 규칙',
+    "const KEY='tqqq-v2-state-v3'",
+    "const ANCHOR0={d:'2026-09-16', avg:70.9638, sh:35}",
+  ]) assert.match(html, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 test('every page declares UTF-8 before Korean content', async () => {

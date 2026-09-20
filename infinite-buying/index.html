@@ -1,75 +1,462 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>TQQQ 무한매수 계산기</title>
-  <style>
-    :root{color-scheme:light;--bg:#f5f5f2;--panel:#fff;--ink:#111;--dim:#6c6b66;--line:#deded8;--blue:#2563eb;--red:#c43b3b;--green:#13795b;--soft:#ecece7}
-    @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#141413;--panel:#1d1d1b;--ink:#f7f7f4;--dim:#aaa9a1;--line:#343430;--blue:#70a2ff;--red:#ff8585;--green:#57d1a5;--soft:#282826}}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;font-variant-numeric:tabular-nums}
-    .wrap{max-width:900px;margin:auto;padding:18px 18px 70px}.site-nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:28px}.site-nav a{color:var(--dim);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}.site-nav a[aria-current="page"],.site-nav a:hover{color:var(--ink);background:var(--panel)}
-    .eyebrow{font:11px ui-monospace,monospace;letter-spacing:.12em;color:var(--dim);margin:0 0 6px}h1{font-size:28px;line-height:1.2;margin:0 0 8px}.lead{color:var(--dim);margin:0;max-width:68ch}
-    .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:22px 0}.summary>div{background:var(--panel);padding:14px}.k{color:var(--dim);font-size:11px;margin-bottom:4px}.v{font:600 22px ui-monospace,monospace}
-    h2{font-size:18px;margin:32px 0 6px}.sub{color:var(--dim);font-size:13px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
-    label{display:grid;gap:5px;color:var(--dim);font-size:12px}input{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:10px 11px;font:15px ui-monospace,monospace}button{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--bg)}button.secondary{background:var(--soft);color:var(--ink)}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.error{color:var(--red);font-size:13px;min-height:20px}
-    .orders{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.order{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel)}.order.buy{border-top:3px solid var(--blue)}.order.sell{border-top:3px solid var(--green)}.order strong{font:600 25px ui-monospace,monospace}.order p{margin:4px 0 0;color:var(--dim);font-size:12px}.notice{background:var(--soft);border-radius:10px;padding:12px 14px;color:var(--dim);font-size:13px}.notice b{color:var(--ink)}
-    .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:580px;background:var(--panel)}th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{font-size:11px;color:var(--dim)}tbody tr:last-child td{border-bottom:0}.foot{color:var(--dim);font-size:12px;margin-top:28px}
-    @media(max-width:600px){.grid{grid-template-columns:1fr}h1{font-size:24px}.summary{grid-template-columns:repeat(2,1fr)}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TQQQ 무한매수 V2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F4F5F7; --panel:#FFFFFF; --sunk:#EBEDF1;
+  --ink:#14171C; --ink2:#555D68; --ink3:#8B939E;
+  --line:#DFE2E8; --line2:#C5CAD3;
+  --buy:#C8372D; --buy-bg:#FBEAE8;      /* 국내 HTS 관행: 매수=적 */
+  --sell:#1F5FA8; --sell-bg:#E7EFF9;    /* 매도=청 */
+  --amber:#9A6B12; --amber-bg:#FBF0DC;
+  --ok:#1B7A5A;
+  --lift:0 1px 2px rgba(20,23,28,.04),0 8px 20px -14px rgba(20,23,28,.18);
+  --s:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --m:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1216; --panel:#171B21; --sunk:#1F242B;
+  --ink:#E9ECF1; --ink2:#A6AEBA; --ink3:#737C88;
+  --line:#272D35; --line2:#39414B;
+  --buy:#F0736A; --buy-bg:#331D1B; --sell:#6FA8E8; --sell-bg:#152431;
+  --amber:#D6A544; --amber-bg:#2C2313; --ok:#4FBD93;
+  --lift:0 1px 2px rgba(0,0,0,.5),0 8px 20px -14px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --bg:#0F1216; --panel:#171B21; --sunk:#1F242B;
+  --ink:#E9ECF1; --ink2:#A6AEBA; --ink3:#737C88;
+  --line:#272D35; --line2:#39414B;
+  --buy:#F0736A; --buy-bg:#331D1B; --sell:#6FA8E8; --sell-bg:#152431;
+  --amber:#D6A544; --amber-bg:#2C2313; --ok:#4FBD93;
+  --lift:0 1px 2px rgba(0,0,0,.5),0 8px 20px -14px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--s);line-height:1.65;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px 72px}
+header{padding:36px 0 20px}
+.eyebrow{font-family:var(--m);font-size:11px;letter-spacing:.14em;color:var(--ink3);margin:0 0 8px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px}
+.sub{font-size:13.5px;color:var(--ink2);margin:0}
+
+/* status strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:20px 0 0;box-shadow:var(--lift)}
+.cell{background:var(--panel);padding:13px 15px}
+.cell .k small{font-size:9px;opacity:.7}
+.cell .k{font-family:var(--m);font-size:10px;letter-spacing:.08em;color:var(--ink3);margin:0 0 4px;text-transform:uppercase}
+.cell .v{font-family:var(--m);font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:0}
+.cell .v small{font-size:12px;font-weight:500;color:var(--ink3)}
+.pos{color:var(--buy)} .neg{color:var(--sell)}
+
+/* progress */
+.prog{margin:14px 0 0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:15px 17px;box-shadow:var(--lift)}
+.pbar{position:relative;height:9px;background:var(--sunk);border-radius:99px;overflow:visible}
+.pfill{position:absolute;inset:0 auto 0 0;background:var(--ink2);border-radius:99px}
+.pmark{position:absolute;top:-4px;width:1px;height:17px;background:var(--line2)}
+.pmark::after{content:attr(data-l);position:absolute;top:19px;left:50%;transform:translateX(-50%);
+  font-family:var(--m);font-size:9.5px;color:var(--ink3);white-space:nowrap}
+.plab{display:flex;justify-content:space-between;font-family:var(--m);font-size:11px;color:var(--ink3);margin-bottom:8px}
+.plab b{color:var(--ink);font-weight:700}
+
+h2{font-size:17px;font-weight:600;margin:34px 0 4px;letter-spacing:-.01em}
+.h2sub{font-size:13px;color:var(--ink3);margin:0 0 14px}
+
+/* orders */
+.ords{display:grid;gap:10px}
+.ord{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-left-width:3px;border-radius:7px;padding:14px 17px;box-shadow:var(--lift)}
+.ord.b{border-left-color:var(--buy)} .ord.s{border-left-color:var(--sell)}
+.ord .tag{font-family:var(--m);font-size:10px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:3px;white-space:nowrap}
+.ord.b .tag{background:var(--buy-bg);color:var(--buy)} .ord.s .tag{background:var(--sell-bg);color:var(--sell)}
+.ord .nm{font-size:13.5px;font-weight:600;margin:0}
+.ord .dt{font-size:11.5px;color:var(--ink3);margin:2px 0 0;font-family:var(--m)}
+.ord .px{font-family:var(--m);font-size:23px;font-weight:700;letter-spacing:-.02em;text-align:right;white-space:nowrap}
+.ord.b .px{color:var(--buy)} .ord.s .px{color:var(--sell)}
+.ord .qty{font-family:var(--m);font-size:11.5px;color:var(--ink3);text-align:right;margin-top:1px}
+.note{font-size:12.5px;color:var(--ink2);background:var(--sunk);border-radius:6px;padding:11px 14px;margin:10px 0 0;line-height:1.6}
+.note b{color:var(--ink)}
+
+/* inputs */
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 12px}
+label{display:block;font-family:var(--m);font-size:10px;letter-spacing:.07em;color:var(--ink3);margin-bottom:4px;text-transform:uppercase}
+input{width:100%;font-family:var(--m);font-size:14px;padding:8px 11px;border:1px solid var(--line2);
+  border-radius:6px;background:var(--panel);color:var(--ink);font-variant-numeric:tabular-nums}
+input:focus{outline:2px solid var(--ink2);outline-offset:1px;border-color:transparent}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+button{font-family:var(--s);font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;
+  border:1px solid var(--line2);background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:hover{border-color:var(--ink2)}
+button:focus-visible{outline:2px solid var(--ink2);outline-offset:2px}
+
+/* daily loop */
+.loop{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:30px 0 0}
+.loop>div{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px 15px}
+.loop .t{font-family:var(--m);font-size:10px;letter-spacing:.08em;color:var(--amber);font-weight:700;display:block;margin-bottom:5px}
+.loop b{font-size:13.5px;display:block}
+.loop p{font-size:11.5px;color:var(--ink3);margin:4px 0 0;line-height:1.5}
+button.mini{font-size:11px;padding:4px 10px;margin-left:8px;vertical-align:2px;font-weight:500}
+
+/* order slip */
+table.slip{min-width:560px;font-size:13.5px}
+table.slip td{padding:12px 14px}
+table.slip .px{font-family:var(--m);font-size:19px;font-weight:700;letter-spacing:-.02em}
+table.slip tr.b .px{color:var(--buy)} table.slip tr.s .px{color:var(--sell)}
+table.slip tr.b .tag{background:var(--buy-bg);color:var(--buy)}
+table.slip tr.s .tag{background:var(--sell-bg);color:var(--sell)}
+table.slip .tag{font-family:var(--m);font-size:10px;font-weight:700;padding:3px 9px;border-radius:3px}
+table.slip .dt{font-size:11px;color:var(--ink3);margin-top:2px}
+table.slip .n{font-family:var(--m)}
+
+.badge{font-family:var(--m);font-size:11px;padding:1px 5px;border-radius:3px;background:var(--amber-bg);color:var(--amber);font-weight:700;vertical-align:1px}
+
+/* table */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:var(--lift)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:12.5px}
+th,td{padding:8px 13px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:var(--m);font-size:10px;letter-spacing:.06em;color:var(--ink3);background:var(--sunk);text-transform:uppercase}
+td.n{font-family:var(--m)}
+tbody tr:last-child td{border-bottom:none}
+tr.today td{background:var(--amber-bg)}
+.miss{color:var(--ink3)}
+
+.rules{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:17px 19px;box-shadow:var(--lift)}
+.rules dl{margin:0;display:grid;gap:11px}
+.rules dt{font-family:var(--m);font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.05em}
+.rules dd{margin:3px 0 0;font-size:13px;color:var(--ink2)}
+.rules dd b{color:var(--ink);font-weight:600}
+footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3);line-height:1.6}
+</style>
 </head>
 <body>
-<main class="wrap">
-  <nav class="site-nav" data-site-nav aria-label="투자 도구">
-    <a href="/invest-dash/">매수 신호</a>
-    <a href="/invest-dash/asset-goals/">8억 목표</a>
-    <a href="/invest-dash/infinite-buying/" aria-current="page">무한매수 계산기</a>
-  </nav>
-  <header>
-    <p class="eyebrow">TQQQ · INFINITE BUYING V2.0</p>
-    <h1>TQQQ 무한매수 계산기</h1>
-    <p class="lead">아침에는 계좌의 실제 평단과 보유 주수를 입력하고, 밤에는 계산된 주문 3건을 확인합니다. 계좌 숫자를 그대로 옮기는 것이 원칙입니다.</p>
-  </header>
 
-  <section class="summary" aria-label="현재 상태">
-    <div><div class="k">진행 회차</div><div class="v" id="round">—</div></div>
-    <div><div class="k">보유 주수</div><div class="v" id="shares">—</div></div>
-    <div><div class="k">계좌 평단</div><div class="v" id="average">—</div></div>
-    <div><div class="k">최근 입력일</div><div class="v" id="last-date">—</div></div>
-  </section>
+<div class="wrap">
+<header>
+  <p class="eyebrow">INFINITE BUYING V2.0 · TQQQ</p>
+  <h1>무한매수 주문 계산기</h1>
+  <p class="sub">2026-08-17 시작 · 1회 2주 고정 · 매일 종가를 넣으면 평단과 다음 주문이 갱신됩니다. 입력값은 이 브라우저에만 저장됩니다.</p>
+</header>
 
-  <h2>오늘 밤 주문</h2>
-  <p class="sub">주문가는 계좌 평단에서 계산됩니다. 실제 주문 전 종목·수량·가격을 한 번 더 확인하세요.</p>
-  <section class="orders" id="orders"></section>
-  <p class="notice" id="phase-note"></p>
+<div class="strip" id="strip"></div>
 
-  <h2>아침 입력</h2>
-  <p class="sub">전일 체결 결과가 반영된 계좌 값을 사용합니다. 같은 거래일을 다시 저장하면 해당 이력이 교체됩니다.</p>
-  <form class="card" id="morning-form">
-    <div class="grid">
-      <label>거래일<input required type="date" name="date"></label>
-      <label>전일 종가 ($)<input required type="number" min="0.01" step="0.0001" name="close"></label>
-      <label>계좌 평단 ($)<input required type="number" min="0.0001" step="0.0001" name="accountAveragePrice"></label>
-      <label>보유 주수<input required type="number" min="0" step="1" name="accountShares"></label>
-    </div>
-    <div class="actions"><button type="submit">계좌 값 반영</button><span class="error" id="error" role="alert"></span></div>
-  </form>
+<div class="prog">
+  <div class="plab"><span>진행률 <b id="pRound">–</b> / 40회차</span><span id="pInv">–</span></div>
+  <div class="pbar"><div class="pfill" id="pFill"></div>
+    <div class="pmark" style="left:50%" data-l="20 후반전"></div>
+    <div class="pmark" style="left:100%" data-l="40 소진"></div>
+  </div>
+</div>
 
-  <h2>운용 설정</h2>
-  <form class="card" id="settings-form">
-    <div class="grid">
-      <label>투자 원금 (원)<input required type="number" min="1" step="10000" name="principalKrw"></label>
-      <label>환율 (원/$)<input required type="number" min="1" step="0.01" name="exchangeRate"></label>
-      <label>1회 주수<input required type="number" min="1" step="1" name="perRoundShares"></label>
-      <label>최대 회차<input readonly type="number" name="maxRounds"></label>
-    </div>
-    <div class="actions"><button type="submit">설정 저장</button><button class="secondary" type="button" id="reset">초기 상태로 복원</button></div>
-  </form>
+<div class="loop">
+  <div><span class="t">밤 (자기 전)</span><b>주문 3건 예약</b><p>아래 표 그대로 HTS에 입력. 미국장 마감은 한국시간 새벽 5~6시</p></div>
+  <div><span class="t">아침</span><b>계좌 열고 네 칸 입력</b><p>거래일·종가·<b>계좌 평단</b>·보유주수 → [반영]</p></div>
+  <div><span class="t">그날 밤</span><b>새 주문가 확인</b><p>갱신된 평단으로 다음 주문가가 다시 계산됨</p></div>
+</div>
 
-  <h2>입력 이력</h2>
-  <div class="table-wrap"><table><thead><tr><th>거래일</th><th>종가</th><th>계좌 평단</th><th>보유</th><th>회차</th></tr></thead><tbody id="history"></tbody></table></div>
-  <p class="foot">초기 기준: 2026-09-16, 35주, 평단 $70.9638, 9/16 주문 미집행. 브라우저 저장 키 <code>tqqq-v2-state-v4</code>. 40회차 이후 쿼터손절 모드는 이 계산기에서 지원하지 않습니다. 투자 권유가 아닙니다.</p>
-</main>
-<script type="module" src="app.mjs"></script>
+<h2>오늘 밤 걸 주문 <span id="ordDate" class="badge"></span> <button id="copy" class="mini">복사</button></h2>
+<p class="h2sub" id="ordWhen">–</p>
+<div class="ords" id="orders"></div>
+<div class="note" id="ordNote"></div>
+
+<h2>아침 입력</h2>
+<p class="h2sub">간밤 장(마지막 종가일)이 끝나면 <b>계좌를 열어 평단·보유주수</b>를 채우고 [반영]. 거래일·종가는 자동으로 채워져 있고, 계좌 실값이 들어가면 오늘 밤 주문가가 위에 바로 나옵니다. <b>주문을 못 걸었거나 미체결이면 매수 체결 주수에 0</b>을 넣으세요. 비워 두면 규칙대로 체결된 것으로 추정합니다.</p>
+<div class="row">
+  <div style="flex:1.1;min-width:130px"><label id="inDateL">거래일</label><input type="date" id="inDate"></div>
+  <div style="flex:1;min-width:105px"><label>종가 ($)</label><input type="number" id="inPx" step="0.01" placeholder="70.98"></div>
+  <div style="flex:1;min-width:115px"><label>계좌 평단 ($)</label><input type="number" id="anAvg" step="0.0001" placeholder="71.2708"></div>
+  <div style="flex:1;min-width:100px"><label>보유주수</label><input type="number" id="anSh" step="1" placeholder="31"></div>
+  <div style="flex:1;min-width:120px"><label>매수 체결 주수</label><input type="number" id="inBuy" step="1" min="0" placeholder="비우면 추정"></div>
+  <button class="primary" id="apply">반영</button>
+  <button id="undo">되돌리기</button>
+</div>
+<div class="note" id="guess"></div>
+
+<h2>설정</h2>
+<div class="form">
+  <div><label>원금 (원)</label><input type="number" id="cfgP" step="100000"></div>
+  <div><label>환율 (원/$)</label><input type="number" id="cfgFx" step="0.1"></div>
+  <div><label>분할 수</label><input type="number" id="cfgT" step="1"></div>
+  <div><label>1회 매수 주수</label><input type="number" id="cfgQ" step="1" min="1"></div>
+  <div style="display:flex;align-items:end"><button id="reset">8/17부터 재계산</button></div>
+</div>
+
+<h2>체결 이력</h2>
+<p class="h2sub">체결이 있었던 날만 나옵니다. 주문을 안 걸었거나 미체결이면 그날은 표에 없고, 맨 위 행의 평단·보유가 곧 현재 값입니다.</p>
+<div class="scroll"><table>
+  <thead><tr><th>날짜</th><th>종가</th><th>회차</th><th>평단 (거래 후)</th><th>수익률</th><th>체결</th><th>투입 누적</th><th>보유</th></tr></thead>
+  <tbody id="log"></tbody>
+</table></div>
+
+<h2>V2.0 규칙</h2>
+<div class="rules"><dl>
+  <div><dt>분할</dt><dd><b>40분할.</b> 1회 매수금액 = 원금 ÷ 40. 회차는 날짜가 아니라 <b>투입금액 ÷ 1회분</b>으로 센다 — LOC가 미체결이면 회차가 안 오른다.</dd></div>
+  <div><dt>전반전 · 회차 20 미만</dt><dd>1회분을 <b>반으로 쪼개 LOC 매수</b> — 절반은 <b>평단</b>, 절반은 <b>평단+5%</b>.<br>매도는 <b>전량을 평단+10% 지정가</b>.</dd></div>
+  <div><dt>후반전 · 회차 20 이상</dt><dd>1회분 <b>전체를 평단 LOC</b>로. <b>평단 위에서는 절대 매수 금지.</b><br>매도는 <b>평단+5%와 +10%로 반반 분할</b>.</dd></div>
+  <div><dt>데드존</dt><dd>평단 <b>+5% 초과 ~ +9.9%</b> 구간은 매수도 매도도 미체결. 종가가 여기 머물면 아무 일도 안 일어난다.</dd></div>
+  <div><dt>사이클 종료</dt><dd>익절되면 종료 후 재시작. <b>40회차를 다 쓰면 쿼터손절 모드</b>로 넘어간다 — 이 계산기는 거기까지는 다루지 않는다.</dd></div>
+</dl></div>
+
+<footer>
+  LOC(Limit On Close)는 <b>종가가 지정가 이하일 때만 체결</b>되는 매수 주문입니다. 종가만 넣으면 규칙대로 <b>추정</b>하고, <b>매수·매도 체결 주수를 직접 넣으면 그 값이 우선</b>합니다. 매도 지정가는 장중에도 체결되니 아침에 실제 체결을 확인해 넣으세요. 수수료·환전 스프레드는 반영하지 않습니다.<br>
+  소수점 매수가 안 되는 계좌 기준이라 <b>1회 2주 고정</b>으로 계산합니다. 투자 판단과 실제 주문은 본인 책임입니다.
+</footer>
+</div>
+
+<script>
+/* 실제 체결가 (8/17·9/2는 계좌 기준, yfinance 종가와 미세 차이) */
+const HIST = [["2026-08-17",77.18],["2026-08-18",72.53],["2026-08-19",72.06],["2026-08-20",70.48],
+["2026-08-21",71.17],["2026-08-24",69.01],["2026-08-25",70.27],["2026-08-26",70.49],
+["2026-08-27",73.30],["2026-08-28",71.85],["2026-08-31",71.92],["2026-09-01",69.15],
+["2026-09-02",69.00],["2026-09-03",72.03],["2026-09-04",72.37],["2026-09-08",72.16],
+["2026-09-09",71.55],["2026-09-10",69.21],["2026-09-11",70.98],["2026-09-14",69.27],
+["2026-09-15",67.90],["2026-09-16",67.93,0]];   /* 9/16 주문 미집행 — 매수·매도 0 */
+/* 저장 키에 버전을 붙인다 — 이전 버전 상태가 남아 새 설정값(Q)을 덮어쓰면 전부 NaN이 된다 */
+const KEY='tqqq-v2-state-v3';
+const DEF={P:10000000,fx:1345.9,T:40,Q:2};   // Q = 1회 매수 주수
+/* 계좌 동기화 기준점 — 실제 체결단가가 종가와 미세하게 달라 누적 오차가 생긴다.
+   계좌 값을 넣으면 그 날짜까지는 계좌를 진실로 보고, 이후만 규칙으로 계산한다. */
+/* 계좌 실값 기본 기준점. localStorage 에 저장된 기준점이 있으면 그쪽이 우선한다.
+   2026-09-16 계좌 확인값 (주문 미집행으로 매수 0) */
+const ANCHOR0={d:'2026-09-16', avg:70.9638, sh:35};
+let anchor={...ANCHOR0};
+let cfg={...DEF}, closes=HIST.slice();
+
+try{
+  const s=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(s){
+    cfg={...DEF, ...(s.cfg||{})};            // 병합 — 통째로 교체하지 않는다
+    if(Array.isArray(s.closes) && s.closes.length) closes=s.closes;
+    if(s.anchor && s.anchor.d) anchor=s.anchor;
+  }
+}catch(e){}
+/* 어떤 경로로든 들어온 쓰레기 값을 기본값으로 되돌린다 */
+for(const k of Object.keys(DEF)){
+  const v=Number(cfg[k]);
+  cfg[k]=(Number.isFinite(v) && v>0) ? v : DEF[k];
+}
+/* [날짜, 종가, 매수체결?, 매도체결?] — 길이 2로 제한하면 체결 주수를 넣은 행이 통째로 버려진다 */
+const toQty=(v,dflt)=>(v===undefined||v===null||v==='')?dflt:Math.max(0,parseInt(v,10)||0);
+closes=closes.filter(c=>Array.isArray(c)&&c.length>=2&&Number.isFinite(Number(c[1]))&&Number(c[1])>0)
+             .map(c=>[c[0],Number(c[1]),toQty(c[2],undefined),toQty(c[3],0)]);
+if(!closes.length) closes=HIST.slice();
+/* HIST는 매일 아침 자동으로 갱신되어 재배포된다.
+   저장본에 없는 날짜만 채워 넣는다 — 사용자가 직접 넣은 행(체결주수 포함)이 항상 이긴다 */
+{ const byD=Object.fromEntries(closes.map(c=>[c[0],c]));
+  for(const h of HIST){
+    const cur=byD[h[0]];
+    if(!cur) closes.push([h[0],Number(h[1]),toQty(h[2],undefined),toQty(h[3],0)]);
+    /* HIST가 체결주수를 명시했으면 저장본(추정·수동입력 모두)을 덮어쓴다 — 미체결을 확정할 유일한 통로 */
+    else if(h[2]!==undefined) cur[2]=toQty(h[2],undefined);
+  }
+  closes.sort((a,b)=>a[0]<b[0]?-1:1); }
+
+/* 브라우저에 오래된 계좌 기준점이 남아 있으면 최신 확인값(ANCHOR0)이 이긴다.
+   ANCHOR0 날짜가 지금 데이터에 없으면(다른 기간을 보고 있으면) 저장본을 그대로 둔다. */
+if(anchor && anchor.d < ANCHOR0.d && closes.some(c=>c[0]===ANCHOR0.d)) anchor={...ANCHOR0};
+
+const usdP=()=>cfg.P/cfg.fx, one=()=>cfg.Q;   // 1회분 = Q주 (정수 매수)
+const halfQ=()=>Math.max(1,Math.floor(cfg.Q/2));
+const f2=n=>n.toFixed(2), won=n=>Math.round(n).toLocaleString('ko-KR');
+
+/* 종가 목록을 처음부터 되짚어 현재 상태를 만든다 (한 곳에서만 상태가 생기게) */
+/* 규칙이 예상하는 그날 매수 주수 — 실제 입력이 없을 때만 쓴다 */
+function guessBuy(px, avg, sh, rnd){
+  const Q=cfg.Q, H=halfQ();
+  if(sh===0) return Q;
+  if(rnd>=cfg.T) return 0;
+  if(rnd<20) return (px<=avg?H:0) + (px<=avg*1.05?H:0);
+  return px<=avg ? Q : 0;
+}
+
+function replay(){
+  let cost=0, sh=0; const rows=[];
+  let applied=false;
+  for(const row of closes){
+    const [d,px,bq,sq]=row;
+    const avg=sh?cost/sh:0, rnd=sh/cfg.Q, half=rnd>=20;
+    let hit=[], sold=0, bought=0, manual=(bq!==undefined&&bq!==null);
+
+    /* 매도: 입력값이 있으면 그대로, 없으면 종가로 추정 */
+    if(sq>0) sold=Math.min(sq,sh);
+    else if(!manual && sh){
+      if(!half && px>=avg*1.10) sold=sh;
+      else if(half && px>=avg*1.10) sold=sh;
+      else if(half && px>=avg*1.05) sold=Math.floor(sh/2);
+    }
+    if(sold>0){ hit.push(`매도 ${sold}주 @$${f2(avg*(sold===sh&&!half?1.10:1.05))}`); sh-=sold; cost=sh*avg; }
+
+    bought = manual ? bq : (sold>0 ? 0 : guessBuy(px,avg,sh,rnd));
+    if(bought>0){
+      hit.push(sh===0 ? `첫날 ${bought}주` : `매수 ${bought}주 @$${f2(px)}`);
+      sh+=bought; cost+=bought*px;
+    }
+    if(!hit.length) hit.push(null);
+    const rec={d,px,rnd,avg,hit:hit.filter(Boolean),inv:cost,sh,manual};
+    if(anchor && !applied && d>=anchor.d){          // 기준일부터 계좌 값을 진실로 삼는다
+      sh=anchor.sh; cost=anchor.sh*anchor.avg; applied=true;
+      rec.sh=sh; rec.inv=cost; rec.anchored=true;
+      /* 기준점 행은 평단의 근거라 표에 남지만, 그날 체결이 없었으면 그렇게 읽혀야 한다 */
+      rec.nofill = rec.hit.length===0;
+      rec.hit=[`${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주 · 평단 $${anchor.avg.toFixed(4)}`];
+    }
+    rows.push(rec);
+  }
+  return {rows, inv:cost, sh, last:closes.length?closes[closes.length-1][1]:0};
+}
+
+function nextBizDay(iso){
+  /* UTC로만 다룬다 — 로컬(KST)로 더하고 toISOString 하면 9시간 밀려 하루가 깎인다 */
+  const dt=new Date(iso+'T00:00:00Z'); do{ dt.setUTCDate(dt.getUTCDate()+1); }while(dt.getUTCDay()===0||dt.getUTCDay()===6);
+  return dt.toISOString().slice(0,10);
+}
+
+/* 그 행 시점의 평가수익률 — 스트립 '수익률'과 같은 정의(종가 대비 평단) */
+function ret(r){
+  if(!r.sh) return '<span class="miss">–</span>';
+  const v=(r.px/(r.inv/r.sh)-1)*100;
+  return `<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${v.toFixed(2)}%</span>`;
+}
+
+function render(){
+  const st=replay(), ONE=one(), P=usdP();
+  const avg=st.sh?st.inv/st.sh:0, rnd=st.sh/cfg.Q, half=rnd>=20, done=rnd>=cfg.T;
+  const val=st.sh*st.last, pl=val-st.inv;
+  const wd=['일','월','화','수','목','금','토'];
+  const lastD=closes.length?closes[closes.length-1][0]:'';
+
+  document.getElementById('strip').innerHTML=[
+    ['회차', rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
+    ['평단', '$'+avg.toFixed(4)],
+    /* 실시간 시세가 아니라 마지막 종가다 — 정적 페이지는 시세를 못 가져온다(CSP) */
+    ['종가 <small>'+(lastD?lastD.slice(5):'')+'</small>', '$'+f2(st.last)],
+    ['보유', st.sh+'<small>주</small>'],
+    ['평가손익 <small>종가기준</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+won(pl*cfg.fx)+'<small>원</small></span>'],
+    /* 수익률은 투입금 대비 — 익절선(+10%)과 같은 잣대라 이게 실제 판단 기준이다 */
+    ['수익률 <small>종가·투입대비</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(st.inv?pl/st.inv*100:0).toFixed(2)+'<small>%</small></span>'],
+    ['원금대비 <small>1,000만</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(pl/P*100).toFixed(2)+'<small>%</small></span>']
+  ].map(([k,v])=>`<div class="cell"><p class="k">${k}</p><p class="v">${v}</p></div>`).join('');
+
+  document.getElementById('pRound').textContent=rnd.toFixed(1);
+  document.getElementById('pInv').textContent='투입 '+won(st.inv*cfg.fx)+'원 · 40회차 예상소진 '+won(cfg.T*cfg.Q*avg*cfg.fx)+'원';
+  document.getElementById('pFill').style.width=Math.min(100,rnd/cfg.T*100)+'%';
+
+  const when=closes.length?nextBizDay(closes[closes.length-1][0]):'–';
+  const kd=when==='–'?'–':`${+when.slice(5,7)}/${+when.slice(8,10)}(${wd[new Date(when+'T00:00:00Z').getUTCDay()]}) 밤`;
+  document.getElementById('ordDate').textContent=kd;
+  document.getElementById('ordWhen').textContent=
+    when+' 장 마감에 체결 판정 · '+(half?'후반전 (회차 20 이상)':'전반전 (회차 20 미만)');
+
+  const O=[], H=halfQ();
+  if(done){ O.push(['s','매수 없음',cfg.T+'회차 소진 — 쿼터손절 모드',null,null]); }
+  else if(!half){
+    O.push(['b','LOC 매수 ①','평단 지정가', avg, H]);
+    O.push(['b','LOC 매수 ②','평단+5% 지정가', avg*1.05, H]);
+  } else {
+    O.push(['b','LOC 매수','평단 지정가 · 평단 위에서는 매수 금지', avg, cfg.Q]);
+  }
+  if(st.sh>0){
+    if(!half) O.push(['s','지정가 매도','평단+10% · 전량', avg*1.10, st.sh]);
+    else{ O.push(['s','분할매도 ①','평단+5% · 절반', avg*1.05, Math.floor(st.sh/2)]);
+          O.push(['s','분할매도 ②','평단+10% · 나머지', avg*1.10, st.sh-Math.floor(st.sh/2)]); }
+  }
+  document.getElementById('orders').innerHTML=`<div class="scroll"><table class="slip">
+    <thead><tr><th>구분</th><th>종목</th><th>주문유형</th><th>지정가</th><th>수량</th><th>예상금액</th></tr></thead>
+    <tbody>${O.filter(o=>o[3]).map(([k,nm,dt,px,q])=>`
+      <tr class="${k}"><td><span class="tag">${k==='b'?'매수':'매도'}</span></td>
+        <td><b>TQQQ</b></td>
+        <td>${k==='b'?'LOC (종가 지정가)':'지정가 매도'}<div class="dt">${dt}</div></td>
+        <td class="px">$${f2(px)}</td><td class="n"><b>${q}주</b></td>
+        <td class="n">${won(q*px*cfg.fx)}원</td></tr>`).join('')}</tbody></table></div>
+    ${O.some(o=>!o[3])?'<div class="note">'+O.find(o=>!o[3])[2]+'</div>':''}`;
+  window.__slip = O.filter(o=>o[3]).map(([k,nm,dt,px,q])=>
+    `TQQQ  ${k==='b'?'매수 LOC':'매도 지정가'}  $${f2(px)}  ${q}주`).join('\n');
+
+  const gapLo=avg*1.05, gapHi=avg*1.10;
+  const useAll=cfg.T*cfg.Q*avg, spare=P-useAll;
+  document.getElementById('ordNote').innerHTML= done
+    ? '<b>'+cfg.T+'회차를 다 썼습니다.</b> 더 매수하지 않고 익절가 도달까지 기다리거나 쿼터손절 규칙으로 넘어갑니다.'
+    : `종가가 <b>$${f2(gapLo)} 초과 ~ $${f2(gapHi)} 미만</b>이면 <b>데드존</b> — 매수도 매도도 체결되지 않습니다.
+       마지막 종가 $${f2(st.last)} 기준 익절까지 <b>${((gapHi/st.last-1)*100).toFixed(1)}%</b> 남았습니다.<br>
+       <b>1회 ${cfg.Q}주 고정</b>이라 ${cfg.T}회차를 다 써도 <b>${won(useAll*cfg.fx)}원</b>만 쓰고
+       <b>${won(spare*cfg.fx)}원(${(spare/P*100).toFixed(0)}%)</b>이 예비로 남습니다.`;
+
+  /* 표 이름대로 '체결' 이 있었던 날만 남긴다. 주문 미집행·미체결 날은 행을 만들지 않는다
+     (계좌 기준점이 찍힌 행은 평단 근거라 남긴다). */
+  const logRows=st.rows.filter(r=>r.hit.length>0 && !r.nofill);
+  /* 마지막 보이는 행 이후로는 체결이 없었으므로, 그 행의 평단·보유는 곧 현재 상태다.
+     (뒤에서 계좌 기준점이 평단을 보정했더라도 표와 스트립이 어긋나면 안 된다) */
+  if(logRows.length){
+    const L=logRows[logRows.length-1];
+    if(L!==st.rows[st.rows.length-1]){ L.sh=st.sh; L.inv=st.inv; }
+  }
+  document.getElementById('log').innerHTML=logRows.slice().reverse().map((r,i)=>`
+    <tr class="${i===0?'today':''}"><td class="n">${r.d}</td><td class="n">$${f2(r.px)}</td>
+    <td class="n">${r.rnd.toFixed(1)}</td><td class="n">${r.sh?'$'+(r.inv/r.sh).toFixed(4):'–'}</td>
+    <td class="n">${ret(r)}</td>
+    <td class="${r.nofill?'miss':''}">${r.hit.join(' + ')}${r.anchored?' <span class="badge">계좌</span>':r.manual?' <span class="badge">입력</span>':''}</td>
+    <td class="n">${won(r.inv*cfg.fx)}원</td><td class="n">${r.sh}주</td></tr>`).join('');
+
+  document.getElementById('cfgP').value=cfg.P;
+  document.getElementById('cfgFx').value=cfg.fx;
+  document.getElementById('cfgT').value=cfg.T;
+  document.getElementById('cfgQ').value=cfg.Q;
+  document.getElementById('guess').innerHTML = anchor
+    ? `<b>${anchor.d} 계좌 기준</b> — ${anchor.sh}주 · 평단 $${anchor.avg.toFixed(4)}. 이후 날짜만 규칙으로 계산합니다.`
+    : '<b>평단·보유주수는 계좌에서 그대로 옮겨 적으세요.</b> 비워두면 종가로 추정하는데, 실제 체결단가와 미세한 오차가 쌓입니다.';
+  /* 아침 입력 = 간밤에 끝난 장(마지막 종가일). 오늘 밤 주문(when)은 그 다음 거래일이다.
+     종가는 7시 자동 갱신으로 이미 들어와 있으니 미리 채우고, 사용자는 계좌 평단·보유주수만 넣는다 */
+  const lastK=lastD?`${+lastD.slice(5,7)}/${+lastD.slice(8,10)}(${wd[new Date(lastD+'T00:00:00Z').getUTCDay()]})`:'';
+  document.getElementById('inDate').value=lastD;
+  document.getElementById('inPx').value=lastD?f2(st.last):'';
+  document.getElementById('inDateL').textContent = lastD ? '거래일 — '+lastK+' 장 (간밤)' : '거래일';
+  try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor}));}catch(e){}
+}
+
+document.getElementById('apply').onclick=()=>{
+  const d=document.getElementById('inDate').value;
+  const px=parseFloat(document.getElementById('inPx').value);
+  const avg=parseFloat(document.getElementById('anAvg').value);
+  const sh=parseInt(document.getElementById('anSh').value,10);
+  if(!d||!(px>0)){ alert('거래일과 종가는 반드시 넣어주세요.'); return; }
+  const buyRaw=document.getElementById('inBuy').value;
+  const bq=buyRaw===''?undefined:Math.max(0,parseInt(buyRaw,10)||0);   /* 0 이면 미체결로 기록, 비우면 규칙으로 추정 */
+  closes=closes.filter(c=>c[0]!==d); closes.push([d,px,bq,0]); closes.sort((a,b)=>a[0]<b[0]?-1:1);
+  /* 계좌 평단·보유를 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선 */
+  if(avg>0 && sh>=0) anchor={d,avg,sh};
+  ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
+};
+document.getElementById('copy').onclick=async e=>{
+  try{ await navigator.clipboard.writeText(window.__slip||''); e.target.textContent='복사됨'; }
+  catch(err){ e.target.textContent='복사 실패'; }
+  setTimeout(()=>e.target.textContent='복사',1400);
+};
+document.getElementById('undo').onclick=()=>{ if(closes.length>1){ const d=closes.pop()[0]; if(anchor&&anchor.d===d) anchor=null; render(); } };
+document.getElementById('reset').onclick=()=>{ closes=HIST.slice(); render(); };
+['cfgP','cfgFx','cfgT','cfgQ'].forEach(id=>document.getElementById(id).onchange=e=>{
+  const key={cfgP:'P',cfgFx:'fx',cfgT:'T',cfgQ:'Q'}[id], v=Number(e.target.value);
+  if(Number.isFinite(v)&&v>0){ cfg[key]=v; } else { e.target.value=cfg[key]; }
+  render();
+});
+
+render();
+
+/* 렌더 직후: 숫자 칸에 NaN이 남으면 기본값으로 복구하고 한 번만 다시 그린다 */
+(function selfcheck(){
+  const bad=[...document.querySelectorAll('.cell .v,.ord .px')].some(el=>/NaN|undefined/.test(el.textContent));
+  if(bad){
+    console.warn('NaN 감지 — 설정을 기본값으로 되돌립니다');
+    cfg={...DEF}; closes=HIST.slice();
+    try{localStorage.removeItem(KEY);}catch(e){}
+    render();
+  }
+})();
+</script>
 </body>
 </html>
