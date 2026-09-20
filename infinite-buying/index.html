@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TQQQ 무한매수 계산기</title>
+  <style>
+    :root{color-scheme:light;--bg:#f5f5f2;--panel:#fff;--ink:#111;--dim:#6c6b66;--line:#deded8;--blue:#2563eb;--red:#c43b3b;--green:#13795b;--soft:#ecece7}
+    @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#141413;--panel:#1d1d1b;--ink:#f7f7f4;--dim:#aaa9a1;--line:#343430;--blue:#70a2ff;--red:#ff8585;--green:#57d1a5;--soft:#282826}}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;font-variant-numeric:tabular-nums}
+    .wrap{max-width:900px;margin:auto;padding:18px 18px 70px}.site-nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:28px}.site-nav a{color:var(--dim);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}.site-nav a[aria-current="page"],.site-nav a:hover{color:var(--ink);background:var(--panel)}
+    .eyebrow{font:11px ui-monospace,monospace;letter-spacing:.12em;color:var(--dim);margin:0 0 6px}h1{font-size:28px;line-height:1.2;margin:0 0 8px}.lead{color:var(--dim);margin:0;max-width:68ch}
+    .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:22px 0}.summary>div{background:var(--panel);padding:14px}.k{color:var(--dim);font-size:11px;margin-bottom:4px}.v{font:600 22px ui-monospace,monospace}
+    h2{font-size:18px;margin:32px 0 6px}.sub{color:var(--dim);font-size:13px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+    label{display:grid;gap:5px;color:var(--dim);font-size:12px}input{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:10px 11px;font:15px ui-monospace,monospace}button{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--bg)}button.secondary{background:var(--soft);color:var(--ink)}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.error{color:var(--red);font-size:13px;min-height:20px}
+    .orders{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.order{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel)}.order.buy{border-top:3px solid var(--blue)}.order.sell{border-top:3px solid var(--green)}.order strong{font:600 25px ui-monospace,monospace}.order p{margin:4px 0 0;color:var(--dim);font-size:12px}.notice{background:var(--soft);border-radius:10px;padding:12px 14px;color:var(--dim);font-size:13px}.notice b{color:var(--ink)}
+    .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:580px;background:var(--panel)}th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{font-size:11px;color:var(--dim)}tbody tr:last-child td{border-bottom:0}.foot{color:var(--dim);font-size:12px;margin-top:28px}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}h1{font-size:24px}.summary{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="site-nav" data-site-nav aria-label="투자 도구">
+    <a href="/invest-dash/">매수 신호</a>
+    <a href="/invest-dash/asset-goals/">8억 목표</a>
+    <a href="/invest-dash/infinite-buying/" aria-current="page">무한매수 계산기</a>
+  </nav>
+  <header>
+    <p class="eyebrow">TQQQ · INFINITE BUYING V2.0</p>
+    <h1>TQQQ 무한매수 계산기</h1>
+    <p class="lead">아침에는 계좌의 실제 평단과 보유 주수를 입력하고, 밤에는 계산된 주문 3건을 확인합니다. 계좌 숫자를 그대로 옮기는 것이 원칙입니다.</p>
+  </header>
+
+  <section class="summary" aria-label="현재 상태">
+    <div><div class="k">진행 회차</div><div class="v" id="round">—</div></div>
+    <div><div class="k">보유 주수</div><div class="v" id="shares">—</div></div>
+    <div><div class="k">계좌 평단</div><div class="v" id="average">—</div></div>
+    <div><div class="k">최근 입력일</div><div class="v" id="last-date">—</div></div>
+  </section>
+
+  <h2>오늘 밤 주문</h2>
+  <p class="sub">주문가는 계좌 평단에서 계산됩니다. 실제 주문 전 종목·수량·가격을 한 번 더 확인하세요.</p>
+  <section class="orders" id="orders"></section>
+  <p class="notice" id="phase-note"></p>
+
+  <h2>아침 입력</h2>
+  <p class="sub">전일 체결 결과가 반영된 계좌 값을 사용합니다. 같은 거래일을 다시 저장하면 해당 이력이 교체됩니다.</p>
+  <form class="card" id="morning-form">
+    <div class="grid">
+      <label>거래일<input required type="date" name="date"></label>
+      <label>전일 종가 ($)<input required type="number" min="0.01" step="0.0001" name="close"></label>
+      <label>계좌 평단 ($)<input required type="number" min="0.0001" step="0.0001" name="accountAveragePrice"></label>
+      <label>보유 주수<input required type="number" min="0" step="1" name="accountShares"></label>
+    </div>
+    <div class="actions"><button type="submit">계좌 값 반영</button><span class="error" id="error" role="alert"></span></div>
+  </form>
+
+  <h2>운용 설정</h2>
+  <form class="card" id="settings-form">
+    <div class="grid">
+      <label>투자 원금 (원)<input required type="number" min="1" step="10000" name="principalKrw"></label>
+      <label>환율 (원/$)<input required type="number" min="1" step="0.01" name="exchangeRate"></label>
+      <label>1회 주수<input required type="number" min="1" step="1" name="perRoundShares"></label>
+      <label>최대 회차<input readonly type="number" name="maxRounds"></label>
+    </div>
+    <div class="actions"><button type="submit">설정 저장</button><button class="secondary" type="button" id="reset">초기 상태로 복원</button></div>
+  </form>
+
+  <h2>입력 이력</h2>
+  <div class="table-wrap"><table><thead><tr><th>거래일</th><th>종가</th><th>계좌 평단</th><th>보유</th><th>회차</th></tr></thead><tbody id="history"></tbody></table></div>
+  <p class="foot">초기 기준: 2026-09-16, 35주, 평단 $70.9638, 9/16 주문 미집행. 브라우저 저장 키 <code>tqqq-v2-state-v4</code>. 40회차 이후 쿼터손절 모드는 이 계산기에서 지원하지 않습니다. 투자 권유가 아닙니다.</p>
+</main>
+<script type="module" src="app.mjs"></script>
+</body>
+</html>

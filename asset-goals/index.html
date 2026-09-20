@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>8억 목표 달성판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F5F2; --panel:#FCFCFB; --sunk:#ECECE8; --track:#E4E5E0;
+  --ink:#0B0B0B; --ink2:#52514E; --ink3:#8A8985; --line:#DDDDD8;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s0:#8A8985; --target:#0B0B0B;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#141413; --panel:#1a1a19; --sunk:#232322; --track:#2A2A28;
+  --ink:#FFFFFF; --ink2:#c3c2b7; --ink3:#8A8985; --line:#2E2E2C;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s0:#8A8985; --target:#FFFFFF;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141413; --panel:#1a1a19; --sunk:#232322; --track:#2A2A28;
+  --ink:#FFFFFF; --ink2:#c3c2b7; --ink3:#8A8985; --line:#2E2E2C;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s0:#8A8985; --target:#FFFFFF;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.6;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding-block:36px 72px;padding-inline:18px}
+header{margin-bottom:22px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink3);margin:0 0 6px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+.sub{margin:0;color:var(--ink2);max-width:62ch}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:20px 0 0}
+.tile{background:var(--panel);padding:14px 16px}
+.tile .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin:0 0 4px}
+.tile .v{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.02em;margin:0;line-height:1.1}
+.tile .v small{font-size:12px;font-weight:400;color:var(--ink3);margin-left:4px;font-family:var(--sans)}
+
+h2{font-size:17px;font-weight:700;margin:34px 0 4px;letter-spacing:-.01em}
+.h2sub{font-size:13px;color:var(--ink3);margin:0 0 14px}
+
+/* chart */
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px 14px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink2);margin:0 0 14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:10px;border-radius:2px;background:var(--s1);display:inline-block}
+.sw.hatch{background:repeating-linear-gradient(135deg,var(--s1) 0 2px,transparent 2px 5px)}
+.sw.tgt{width:0;height:14px;border-left:2px dashed var(--target);background:none;border-radius:0}
+.sw.half{width:0;height:14px;border-left:2px dashed var(--ink3);background:none;border-radius:0}
+.rows{display:grid;gap:12px;position:relative}
+#rows{gap:0}
+#rows .grp+.grp{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.gh .tag{vertical-align:1px;margin:0 2px 0 0}
+.glay{position:absolute;inset:-6px 0;display:grid;grid-template-columns:minmax(120px,170px) 1fr 150px;gap:14px;pointer-events:none}
+.glcol{position:relative}
+.glay .gl{top:0;bottom:0}
+.track .gl{display:none}
+.row{display:grid;grid-template-columns:minmax(120px,170px) 1fr 150px;gap:14px;align-items:center}
+.row .nm{font-weight:500;line-height:1.3}
+.row .nm small{display:block;font-size:11.5px;color:var(--ink3);font-weight:400;margin-top:1px}
+.track{position:relative;height:22px;background:var(--track);border-radius:4px}
+.bar{position:absolute;inset:0;display:flex;gap:2px;align-items:stretch}
+.seg{height:100%;background:var(--s1);flex:0 0 auto;min-width:3px}
+.seg.hatch{background:repeating-linear-gradient(135deg,var(--s1) 0 2px,transparent 2px 5px)}
+.bar .seg:last-child{border-radius:0 4px 4px 0}
+.bar .seg:first-child{border-radius:4px 0 0 4px}
+.gl{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--ink3);left:var(--tx);opacity:.7}
+.gl.one{border-left-color:var(--target);opacity:.9}
+.row .val{font-family:var(--mono);font-size:13px;text-align:right;line-height:1.35}
+.row .val b{font-weight:600;display:block;font-size:15px}
+.row .val .pct{color:var(--ink2)}
+.row .val .over{color:var(--ink2)}
+.axis{position:relative;height:18px;margin:8px 0 0;grid-column:2;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.axis span{position:absolute;transform:translateX(-50%)}
+.axisrow{display:grid;grid-template-columns:minmax(120px,170px) 1fr 150px;gap:14px}
+.row[data-tip]{cursor:default}
+.row:hover .track{outline:2px solid var(--line);outline-offset:2px}
+#tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;padding:9px 12px;border-radius:7px;max-width:300px;line-height:1.5;box-shadow:0 8px 24px -10px rgba(0,0,0,.4);display:none}
+#tip b{display:block;margin-bottom:3px}
+#tip .l{display:flex;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12px}
+
+/* horizon tag */
+.tag{font-family:var(--mono);font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;vertical-align:2px;margin-left:4px;background:var(--sunk);color:var(--ink2)}
+.t-장기{background:color-mix(in srgb,var(--s1) 18%,transparent);color:var(--s1)}
+.t-보완{background:color-mix(in srgb,var(--s3) 18%,transparent);color:var(--s3)}
+.t-단기{background:color-mix(in srgb,var(--s4) 22%,transparent);color:var(--s4)}
+
+/* allocation */
+.alloc{display:grid;gap:18px}
+.arow{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:14px;align-items:center}
+.arow .nm{font-weight:500}
+.arow .nm small{display:block;font-size:11.5px;color:var(--ink3);font-weight:400}
+.stack{display:flex;gap:2px;height:30px}
+.stack div{position:relative;display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:600;color:#fff;border-radius:3px;min-width:2px;overflow:hidden;white-space:nowrap}
+.stack div:first-child{border-radius:5px 3px 3px 5px}.stack div:last-child{border-radius:3px 5px 5px 3px}
+.c-g{background:var(--s1)} .c-d{background:var(--s3)} .c-b{background:var(--s4)} .c-c{background:var(--s0)}
+.stack .c-c{color:#fff}
+.legend .sw.d{background:var(--s3)} .legend .sw.b{background:var(--s4)} .legend .sw.c{background:var(--s0)}
+.ratio{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:16px 0 0;font-size:13px}
+.ratio div{background:var(--panel);padding:10px 14px}
+.ratio .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink3);text-transform:uppercase;margin:0 0 2px}
+.ratio .v{margin:0;font-family:var(--mono)}
+.ratio .v b{font-weight:600}
+.alloc+.alloc{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+
+/* two-axis matrix */
+.mx{margin:22px 0 0;padding-top:18px;border-top:1px solid var(--line)}
+.mx .cap{font-size:13px;color:var(--ink2);margin:0 0 12px}
+.mx .cap b{color:var(--ink)}
+.mxg{display:grid;grid-template-columns:110px repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mxg>div{background:var(--panel);padding:10px 12px;min-height:54px;font-size:13px}
+.mxg .h{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink3);text-transform:uppercase;background:var(--sunk);min-height:auto;padding:7px 12px}
+.mxg .rh{font-weight:600;background:var(--sunk);display:flex;align-items:center}
+.mxg .rh small{display:block;font-weight:400;font-size:11px;color:var(--ink3)}
+.mxg .it{display:grid;gap:6px;align-content:flex-start}
+.mxg .ch{display:flex;flex-wrap:wrap;gap:5px}
+.mxg .it p{margin:0;font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.mxg .it p b{color:var(--ink)}
+.mxg .h b{display:block;font-family:var(--mono);font-size:11px;color:var(--ink2);text-transform:none;letter-spacing:0;margin-top:2px}
+.mxg .rh{flex-direction:column;align-items:flex-start;justify-content:center}
+.mxg .rh .pc{font-family:var(--mono);color:var(--ink2);margin-top:3px}
+.mxg .ch span{padding:2px 8px;border-radius:5px;background:var(--sunk);font-size:12.5px}
+.mxg .it.g .ch span{background:color-mix(in srgb,var(--s1) 14%,transparent)}
+.mxg .it.d .ch span{background:color-mix(in srgb,var(--s3) 16%,transparent)}
+.mxg .it.b .ch span{background:color-mix(in srgb,var(--s4) 18%,transparent)}
+.mxg .empty{color:var(--ink3);font-size:12px}
+@media (max-width:560px){.mxg{grid-template-columns:90px repeat(3,1fr)} .mxg>div{padding:8px 8px;font-size:12px}}
+
+/* evaluation */
+.ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ev>div{background:var(--panel);padding:16px 18px}
+.ev h4{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;font-weight:600}
+.ev ul{margin:0;padding-left:16px;font-size:13.5px;color:var(--ink2)}
+.ev li{margin:0 0 4px}
+.ev li b{color:var(--ink);font-weight:600}
+.ev p{margin:0;font-size:13.5px;color:var(--ink2)}
+.ev p b{color:var(--ink)}
+.score{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;margin:0 0 8px}
+.score .n{font-family:var(--mono);font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.score .n small{font-size:14px;color:var(--ink3);font-weight:400;margin-left:4px}
+.score .g{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--s1)}
+
+/* pension */
+.pen .seg{background:var(--s2)}
+.pen .row .nm{font-weight:400}
+.grp{display:grid;gap:12px}
+.grp+.grp{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.gh{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:14px}
+.gh .gt{font-family:var(--mono);font-weight:600;color:var(--ink2)}
+.gap{margin:14px 0 0;padding:12px 14px;background:var(--sunk);border-radius:8px;font-size:13px;color:var(--ink2)}
+.gap b{color:var(--ink)}
+
+details{margin-top:18px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+summary{cursor:pointer;padding:12px 16px;font-weight:500;font-size:14px;list-style:none;display:flex;gap:8px;align-items:center}
+summary::before{content:"+";font-family:var(--mono);color:var(--ink3)}
+details[open] summary::before{content:"–"}
+.tbl{overflow-x:auto;border-top:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}
+th,td{padding:7px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink3);background:var(--sunk);text-transform:uppercase;font-weight:600}
+td.n{font-family:var(--mono);text-align:right}
+td.g{font-weight:600;background:var(--sunk)}
+tbody tr:last-child td{border-bottom:none}
+footer{margin-top:28px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3);line-height:1.6}
+@media (max-width:560px){
+  .row,.axisrow{grid-template-columns:1fr}
+  .glay{display:none} .track .gl{display:block}
+  .row .val{text-align:left;display:flex;gap:10px;align-items:baseline}
+  .row .val b{display:inline}
+  .axis{grid-column:1}
+}
+.site-nav{max-width:900px;margin:18px auto 0;padding:0 18px;display:flex;gap:7px;flex-wrap:wrap}
+.site-nav a{color:var(--ink3);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
+.site-nav a[aria-current="page"],.site-nav a:hover{color:var(--ink);background:var(--panel)}
+</style>
+</head>
+<body>
+
+<nav class="site-nav" data-site-nav aria-label="투자 도구">
+  <a href="/invest-dash/">매수 신호</a>
+  <a href="/invest-dash/asset-goals/" aria-current="page">8억 목표</a>
+  <a href="/invest-dash/infinite-buying/">무한매수 계산기</a>
+</nav>
+<div class="wrap">
+<header>
+  <p class="eyebrow">ASSET GOALS · 2026-09-20 기준</p>
+  <h1>8억 목표 달성판</h1>
+  <p class="sub">8개 항목을 각 1억씩 모으는 목표입니다. 연금계열(연금저축·IRP·연금보험)은 목표에서 빼고 아래 따로 두었습니다. 개별주식은 QQQM으로 묶었습니다.</p>
+  <div class="tiles">
+    <div class="tile"><p class="k">목표 자산 (연금 제외)</p><p class="v">3.76<small>억 / 8억</small></p></div>
+    <div class="tile"><p class="k">달성률</p><p class="v">47.0<small>%</small></p></div>
+    <div class="tile"><p class="k">연금계열</p><p class="v">2.13<small>억</small></p></div>
+    <div class="tile"><p class="k">금융자산 합계</p><p class="v">6.39<small>억 · 오빠 주식 0.5억 포함</small></p></div>
+  </div>
+</header>
+
+<h2>목표 대비 달성 현황</h2>
+<p class="h2sub">장기·보완·단기 세 묶음. 점선은 0.5억과 1억. 항목에 마우스를 올리면 구성 종목이 보입니다.</p>
+<div class="chart" id="chart">
+  <div class="legend"><span><i class="sw"></i>보유 평가액</span><span><i class="sw half"></i>0.5억</span><span><i class="sw tgt"></i>목표 1억</span></div>
+  <div class="rows" id="rows"></div>
+  <div class="axisrow"><div></div><div class="axis" id="axis"></div><div></div></div>
+</div>
+<div class="gap">7개 항목의 <b>부족분 합계 4.81억</b>. QQQM은 목표를 <b>5,715만 초과</b>했는데 그중 네이버 6,154만은 정리 예정.<br>
+<b>채우는 순서(2026-09-20 결정):</b> ① 네이버 매도금 → <b>QLD · 무한매수법</b> ② SPYM · SCHD · 현금 ③ <b>커버드콜 · 비트코인</b>은 가장 뒤.</div>
+
+<h2>자산배분 · 현재 vs 목표 달성 시</h2>
+<p class="h2sub">연금 제외. SCHD는 배당으로 분류(2026-09-20 결정). 코어 = 안 건드리는 돈(QQQM·SPYM·SCHD·커버드콜·비트코인·보유 개별주식), 위성 = 계속 움직이는 돈(QLD·무한매수법). 네이버 6,154만은 정리 후 코어 인덱스로 이동 예정.</p>
+<div class="chart">
+  <div class="legend"><span><i class="sw"></i>성장</span><span><i class="sw d"></i>배당</span><span><i class="sw b"></i>비트코인</span><span><i class="sw c"></i>현금</span></div>
+  <div class="alloc" id="alloc1"></div>
+  <div class="ratio" id="ratio1"></div>
+  <div class="alloc" id="alloc3" style="margin-top:22px;padding-top:18px;border-top:1px solid var(--line)">
+    <div class="legend" style="margin:0"><span><i class="sw"></i>장기 · 안 팔고 쌓는 돈</span><span><i class="sw d"></i>보완 · 받쳐주는 돈</span><span><i class="sw b"></i>단기 · 돌리는 돈</span></div>
+  </div>
+  <div class="ratio" id="ratio3"></div>
+  <div class="alloc" id="alloc2" style="margin-top:22px;padding-top:18px;border-top:1px solid var(--line)">
+    <div class="legend" style="margin:0"><span><i class="sw"></i>코어 (인덱스)</span><span><i class="sw d"></i>위성</span><span><i class="sw c"></i>현금</span></div>
+  </div>
+  <div class="ratio" id="ratio2"></div>
+  <div class="mx">
+    <p class="cap">두 축으로 읽는다. 세로는 <b>어떻게 다루나</b>(코어 = 안 건드림, 위성 = 규칙으로 움직임), 가로는 <b>언제까지 들고 가나</b>. 결정이 헷갈리면 두 질문만 한다: 건드려도 되는 돈인가, 언제 쓸 돈인가.</p>
+    <div class="mxg">
+      <div class="h"></div>
+      <div class="h">장기 · 안 팔고 쌓는 돈<b>64% → 50%</b></div>
+      <div class="h">보완 · 받쳐주는 돈<b>21% → 25%</b></div>
+      <div class="h">단기 · 돌리는 돈<b>15% → 25%</b></div>
+      <div class="rh">코어<small>안 건드림</small><small class="pc">95% → 75%</small></div>
+      <div class="it g"><div class="ch"><span>QQQM</span><span>SPYM</span><span>비트코인</span></div><p>2.33억 · <b>62%</b> → 목표 3억 · 38%</p></div>
+      <div class="it d"><div class="ch"><span>SCHD</span><span>현금</span></div><p>0.78억 · <b>21%</b> → 목표 2억 · 25%</p></div>
+      <div class="it b"><div class="ch"><span>커버드콜</span></div><p>0.47억 · <b>12%</b> → 목표 1억 · 12.5%</p></div>
+      <div class="rh">위성<small>규칙으로 움직임</small><small class="pc">5% → 25%</small></div>
+      <div class="it g"><div class="ch"><span>QLD</span></div><p>0.09억 · <b>2%</b> → 목표 1억 · 12.5%</p></div>
+      <div class="empty">—</div>
+      <div class="it b"><div class="ch"><span>무한매수법</span></div><p>0.10억 · <b>3%</b> → 목표 1억 · 12.5%</p></div>
+    </div>
+    <p class="cap" style="margin:10px 0 0;font-size:12px;color:var(--ink3)">비율은 연금 제외 자산 3.76억(현재)과 8억(목표) 기준. 화살표 앞이 현재, 뒤가 목표 달성 시.</p>
+  </div>
+</div>
+
+<h2>연금계열 · 오빠 자산 (목표 제외)</h2>
+<p class="h2sub">세제 혜택 계좌라 별도로 굴리는 돈. 연금 합계 약 2.13억 (은주 1.06억 · 오빠 1.07억). 오빠 주식 5,000만은 연금이 아니라 합계에서 빼고 금융자산 합계에만 넣었습니다. 시트에 있는 종목은 평가액, 없는 것은 메모 금액입니다.</p>
+<div class="chart pen"><div class="rows" id="prows"></div></div>
+
+<details>
+  <summary>표로 보기 · 종목별 구성</summary>
+  <div class="tbl"><table>
+    <thead><tr><th>항목</th><th>계좌 · 종목</th><th style="text-align:right">평가액 (원)</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+</details>
+
+<h2>포트 평가</h2>
+<p class="h2sub">2026-09-20 기준. 8억은 10억으로 가는 중간 목표라, 축적기 공격형 포트로서 평가.</p>
+<div class="ev">
+  <div>
+    <h4>성격</h4>
+    <p><b>성장 집중형 + 현금 완충형 공격 포트.</b> 미국 나스닥·S&P 인덱스를 코어로, 레버리지(QLD·TQQQ)와 비트코인을 위성으로 얹고, 배당과 현금이 받쳐준다. 채권 없이 현금 하나로 방어하는 축적기 구조.</p>
+  </div>
+  <div>
+    <h4>장점</h4>
+    <ul>
+      <li><b>규칙이 있다.</b> 코어는 안 건드리고 위성은 정해진 규칙으로만 움직여 감정 매매가 낄 자리가 없다.</li>
+      <li><b>단순하다.</b> 8개 항목 각 1억, 두 축 분류. 무엇을 해야 할지 헷갈리지 않는다.</li>
+      <li><b>세제 배치가 맞다.</b> 연금은 최장기 자금이라 95% 주식, 배당은 ISA, 인덱스는 일반계좌.</li>
+      <li><b>방어 장치가 정의돼 있다.</b> 현금은 비율이 아니라 금액이라 자산이 커져도 흔들리지 않는다.</li>
+    </ul>
+  </div>
+  <div>
+    <h4>단점</h4>
+    <ul>
+      <li><b>채권이 없다.</b> 주식과 반대로 움직이는 자산이 없어 하락장 회복이 전부 시간에 달려 있다.</li>
+      <li><b>나스닥 쏠림.</b> QQQM·QLD·TQQQ가 같은 지수라 성장 4억 중 3억이 한 바구니.</li>
+      <li><b>적립 엔진이 약하다.</b> 자동매수가 QLD만 남아 SPYM·SCHD는 우선순위 2번을 기다린다.</li>
+      <li><b>위성 25%</b>는 코어·위성 구조에서 높은 편.</li>
+    </ul>
+  </div>
+  <div>
+    <h4>리스크</h4>
+    <ul>
+      <li><b>시장:</b> 2022년식 하락이면 약 -34%, 2.7억. 레버리지 25%가 그중 절반을 만든다.</li>
+      <li><b>집중:</b> 네이버 16%는 정리 예정으로 해소 중. NVDA 10%는 남는다.</li>
+      <li><b>비트코인:</b> 명목 11%지만 변동성으로 보면 위험 기여 약 1/4.</li>
+      <li><b>시점:</b> 일을 10년쯤 더 한다고 보면 축적 활주로가 길어 지금의 공격성은 감당 가능. 은퇴 3년 전(2033년경)부터 방어 자산을 섞기 시작하면 된다.</li>
+    </ul>
+  </div>
+  <div style="grid-column:1/-1">
+    <h4>점수</h4>
+    <div class="score"><span class="n">85<small>/ 100</small></span><span class="g">B+</span></div>
+    <p>구조·규칙·세제 배치가 좋아 축적기 포트로는 높게 준다. 깎이는 건 채권 0과 나스닥 쏠림. 일을 10년 더 한다는 가정이면 8억까지도, 10억까지도 이 공격형을 유지해도 된다. 2033년경부터 QLD·TQQQ를 줄이고 채권·현금을 15~20%로 올리는 두 번째 단계로 넘어간다.</p>
+  </div>
+</div>
+
+<footer>출처: 금융자산 시트(2026-09-20). 환율 1,381원. 무한매수법 1,000만은 시트에 없어 배정 원금 기준으로 넣었고, 이 때문에 합계가 시트 4.29억보다 0.1억 큽니다. 연금계열 중 은주 연금펀드 5,000만, 오빠 퇴직연금+연금보험 1억, 오빠 주식 5,000만은 시트 메모의 금액이라 평가액이 아닙니다. 국내 고배당 ETF 2종(777만)은 커버드콜 항목의 보조 구간으로, Kodex 200TR(505만)은 SPYM 항목에 포함했습니다.</footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const GOAL=1e8, MAX=1.6e8;   // 축 최대 1.6억 — QQQM 157%가 들어오도록
+const fmt=n=>Math.round(n/1e4).toLocaleString('ko-KR')+'만';
+const goals=[
+  {n:'QQQM',tag:'장기',sub:'개별주식 포함',segs:[157148887],items:[['네이버 (직투·삼성)',61539000],['QQQM (직투25·토스)',38148551],['NVDA',36103759],['GOOGL',10659387],['삼성전자',3855000],['Kodex 미국나스닥100',2951850],['TSLA',1746813],['AAPL',852077],['META',842700],['Time 미국나스닥100액티브',449750]]},
+  {n:'SPYM',tag:'장기',sub:'S&P500 계열 · 자동매수 중단',segs:[35744017],items:[['SPY',18062030],['SPYM (직투25·토스)',8140857],['Kodex 200TR (직투25·삼성)',5047250],['Tiger 미국S&P500',4493880]]},
+  {n:'QLD',tag:'장기',sub:'유일한 자동매수 · 주 15만(월 60만) 시 약 12.7년',segs:[8904121],items:[['QLD (직투25)',8129560],['QLD (토스)',774561]]},
+  {n:'SCHD',tag:'보완',sub:'미국배당다우존스 포함',segs:[43815745],items:[['SCHD (직투25)',19278760],['TIGER 미국배당다우존스 (ISA)',16966985],['TIGER 미국배당다우존스 (직투25)',7570000]]},
+  {n:'커버드콜',tag:'단기',sub:'국내 고배당 ETF 777만 포함',segs:[46853185],items:[['Kodex 미국배당커버드콜액티브 (은주 ISA)',17391640],['TIGER 미국테크TOP10타겟커버드콜 (오빠 ISA)',11137500],['Kodex 미국배당커버드콜액티브 (오빠 ISA)',10549545],['Tiger 은행고배당플러스 top10 (ISA)',4005000],['PLUS 고배당주 (ISA)',3769500]]},
+  {n:'비트코인',tag:'장기',sub:'오빠 2,300만 · 은주 1,700만 · 목표 1억, 우선순위 낮음',segs:[40000000],items:[['비트코인 (오빠)',23000000],['비트코인 (은주)',17000000]]},
+  {n:'현금',tag:'보완',sub:'카뱅 현금 + SGOV',segs:[33883811],items:[['카뱅현금 + SGOV',33883811]]},
+  {n:'무한매수법',tag:'단기',sub:'TQQQ 원금',segs:[10000000],items:[['무한매수법 원금 (TQQQ)',10000000]]},
+];
+const pension={
+  '은주':[
+    {n:'연금펀드',sub:'신한은행 · 메모 기준',segs:[50000000],items:[['신한은행 연금펀드 (메모)',50000000]]},
+    {n:'연금보험',sub:'Tiger S&P500 · 금현물 · 배당다우',segs:[39995560],items:[['Tiger S&P500',28647380],['ACE KRX금현물',8517000],['TIGER 미국배당다우존스',2831180]]},
+    {n:'연금저축 · IRP',sub:'Tiger TDF 2045',segs:[15589940],items:[['연금저축 Tiger TDF 2045',9243380],['IRP Tiger TDF 2045',6346560]]},
+  ],
+  '오빠':[
+    {n:'퇴직연금 + 연금보험',sub:'메모 기준 · 구분 미기재',segs:[100000000],items:[['퇴직연금 + 연금보험 (메모)',100000000]]},
+    {n:'연금저축',sub:'Tiger TDF 2045',segs:[7440380],items:[['연금저축 Tiger TDF 2045',7440380]]},
+    {n:'주식 (연금 아님)',sub:'메모 기준 · 종목 미기재 · 연금 합계 제외',np:true,segs:[50000000],items:[['오빠 주식 (메모)',50000000]]},
+  ]
+};
+const GL=`<div class="glay"><div></div><div class="glcol"><div class="gl" style="--tx:${(GOAL/2/MAX*100).toFixed(2)}%"></div><div class="gl one" style="--tx:${(GOAL/MAX*100).toFixed(2)}%"></div></div><div></div></div>`;
+function row(g,withTarget){
+  const tot=g.segs.reduce((a,b)=>a+b,0), pct=tot/GOAL*100;
+  const segs=g.segs.map((v,i)=>`<div class="seg ${i>0?'hatch':''}" style="width:calc(${(v/MAX*100).toFixed(2)}% - ${i>0?'1px':'0px'})"></div>`).join('');
+  const val= withTarget
+    ? `<b>${fmt(tot)}</b><span class="${pct>=100?'over':'pct'}">${pct>=100?'목표 초과 +'+fmt(tot-GOAL):pct.toFixed(0)+'% · 남은 '+fmt(GOAL-tot)}</span>`
+    : `<b>${fmt(tot)}</b>`;
+  return `<div class="row" tabindex="0" data-i="${g.n}">
+    <div class="nm">${g.n}<small>${g.sub}</small></div>
+    <div class="track"><div class="bar">${segs}</div><div class="gl" style="--tx:${(GOAL/2/MAX*100).toFixed(2)}%"></div><div class="gl one" style="--tx:${(GOAL/MAX*100).toFixed(2)}%"></div></div>
+    <div class="val">${val}</div></div>`;
+}
+const GROUPS=[['장기','안 팔고 쌓는 돈'],['보완','받쳐주는 돈'],['단기','돌리는 돈']];
+document.getElementById('rows').innerHTML=GROUPS.map(([t,d])=>{
+  const arr=goals.filter(g=>g.tag===t), cur=arr.reduce((x,g)=>x+g.segs.reduce((a,b)=>a+b,0),0), tgt=arr.length*GOAL;
+  return `<div class="grp"><div class="gh"><span><span class="tag t-${t}">${t}</span> ${d}</span><span class="gt">${fmt(cur)} / ${fmt(tgt)} · ${(cur/tgt*100).toFixed(0)}%</span></div><div class="rows">${GL}`+arr.map(g=>row(g,true)).join('')+`</div></div>`;
+}).join('');
+document.getElementById('prows').innerHTML=Object.entries(pension).map(([who,arr])=>{
+  const t=arr.filter(g=>!g.np).reduce((x,g)=>x+g.segs[0],0), np=arr.filter(g=>g.np).reduce((x,g)=>x+g.segs[0],0);
+  return `<div class="grp"><div class="gh"><span>${who}</span><span class="gt">연금 ${fmt(t)}${np?' · 주식 '+fmt(np):''}</span></div><div class="rows">${GL}`+arr.map(g=>row(g,false)).join('')+`</div></div>`;
+}).join('');
+document.getElementById('axis').innerHTML=[0,0.5e8,1e8,1.5e8].map(v=>`<span style="left:${(v/MAX*100).toFixed(2)}%">${v===0?'0':v===1e8?'1억':(v/1e8).toFixed(1)+'억'}</span>`).join('');
+
+
+/* 자산배분 */
+const NOW=376349766;
+const A1=[
+  {n:'현재',sub:fmt(NOW),parts:[['c-g','성장',211797025],['c-d','배당',90668930],['c-b','비트코인',40000000],['c-c','현금',33883811]]},
+  {n:'목표 달성 시',sub:'8억',parts:[['c-g','성장',4e8],['c-d','배당',2e8],['c-b','비트코인',1e8],['c-c','현금',1e8]]},
+];
+const A3=[
+  {n:'현재',sub:fmt(NOW),parts:[['c-g','장기',241797025],['c-d','보완',77699556],['c-b','단기',56853185]]},
+  {n:'목표 달성 시',sub:'8억',parts:[['c-g','장기',4e8],['c-d','보완',2e8],['c-b','단기',2e8]]},
+];
+const A2=[
+  {n:'현재',sub:fmt(NOW),parts:[['c-g','코어',323561834],['c-d','위성',18904121],['c-c','현금',33883811]]},
+  {n:'목표 달성 시',sub:'8억',parts:[['c-g','코어',5e8],['c-d','위성',2e8],['c-c','현금',1e8]]},
+];
+function stack(r){ const t=r.parts.reduce((a,p)=>a+p[2],0);
+  return `<div class="arow"><div class="nm">${r.n}<small>${r.sub}</small></div><div class="stack">${r.parts.map(([c,l,v])=>{const pc=v/t*100;return `<div class="${c}" style="flex:${v}" title="${l} ${fmt(v)} · ${pc.toFixed(1)}%">${pc>=7?pc.toFixed(0)+'%':''}</div>`;}).join('')}</div></div>`; }
+document.getElementById('alloc1').innerHTML=A1.map(stack).join('');
+document.getElementById('alloc3').insertAdjacentHTML('beforeend',A3.map(stack).join(''));
+document.getElementById('alloc2').insertAdjacentHTML('beforeend',A2.map(stack).join(''));
+const r=(a,b)=>{const t=a+b;return Math.round(a/t*100)+' : '+Math.round(b/t*100);};
+document.getElementById('ratio1').innerHTML=`
+  <div><p class="k">성장 : 배당</p><p class="v">현재 <b>${r(211797025,90668930)}</b> → 목표 <b>${r(4,2)}</b> <span style="color:var(--ink3)">(비트코인을 성장에 넣으면 ${r(5,2)})</span></p></div>
+  <div><p class="k">주식 : 현금</p><p class="v">현재 <b>${r(211797025+90668930,33883811)}</b> → 목표 <b>${r(6,1)}</b></p></div>`;
+const r3=(a,b,c)=>{const t=a+b+c;return [a,b,c].map(v=>Math.round(v/t*100)).join(' : ');};
+document.getElementById('ratio3').innerHTML=`
+  <div><p class="k">장기 : 보완 : 단기</p><p class="v">현재 <b>${r3(241797025,77699556,56853185)}</b> → 목표 <b>${r3(4,2,2)}</b></p></div>
+  <div><p class="k">가장 뒤처진 묶음</p><p class="v">단기 <b>0.57억 / 2억</b> (커버드콜 5,315만 · 무한매수 9,000만 부족)</p></div>`;
+document.getElementById('ratio2').innerHTML=`
+  <div><p class="k">코어 : 위성</p><p class="v">현재 <b>${r(323561834,18904121)}</b> → 목표 <b>${r(5,2)}</b></p></div>
+  <div><p class="k">코어 안에서 정리 예정</p><p class="v">네이버 <b>6,154만</b> → QLD·무한매수법으로</p></div>`;
+
+/* 표 */
+const tb=[];
+for(const g of goals){ g.items.forEach((it,i)=>tb.push(`<tr>${i===0?`<td class="g" rowspan="${g.items.length}">${g.n}</td>`:''}<td>${it[0]}</td><td class="n">${it[1].toLocaleString('ko-KR')}</td></tr>`)); }
+for(const [who,arr] of Object.entries(pension)){ const items=arr.flatMap(g=>g.items.map(it=>[g.n+' · '+it[0],it[1]])); items.forEach((it,i)=>tb.push(`<tr>${i===0?`<td class="g" rowspan="${items.length}">연금 · ${who}</td>`:''}<td>${it[0]}</td><td class="n">${it[1].toLocaleString('ko-KR')}</td></tr>`)); }
+document.getElementById('tbody').innerHTML=tb.join('');
+
+/* 툴팁 */
+const tip=document.getElementById('tip'), pall=Object.values(pension).flat();
+function show(e){
+  const r=e.currentTarget;
+  const d=r.closest('.pen')?pall.find(x=>x.n===r.dataset.i):goals.find(x=>x.n===r.dataset.i);
+  if(!d) return;
+  tip.innerHTML=`<b>${d.n} · ${fmt(d.segs.reduce((a,b)=>a+b,0))}</b>`+d.items.map(it=>`<div class="l"><span>${it[0]}</span><span>${fmt(it[1])}</span></div>`).join('');
+  tip.style.display='block'; move(e);
+}
+function move(e){ const x=(e.clientX??200), y=(e.clientY??200); const w=tip.offsetWidth,h=tip.offsetHeight;
+  tip.style.left=Math.min(x+14,innerWidth-w-8)+'px'; tip.style.top=(y+18+h>innerHeight? y-h-10 : y+18)+'px'; }
+function hide(){ tip.style.display='none'; }
+document.querySelectorAll('.row').forEach(r=>{ r.addEventListener('mouseenter',show); r.addEventListener('mousemove',move); r.addEventListener('mouseleave',hide); r.addEventListener('focus',show); r.addEventListener('blur',hide); });
+</script>
+</body>
+</html>

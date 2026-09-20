@@ -2,6 +2,16 @@
 
 QQQ / QLD 매수 신호 대시보드 — https://naivblue.github.io/invest-dash/
 
+## Pages
+
+| URL | 기능 |
+|---|---|
+| https://naivblue.github.io/invest-dash/ | QQQ/QLD 매수 신호 |
+| https://naivblue.github.io/invest-dash/asset-goals/ | 8억 목표 달성판 |
+| https://naivblue.github.io/invest-dash/infinite-buying/ | TQQQ 무한매수법 V2 계산기 |
+
+정적 HTML/JavaScript로 동작하며 별도 빌드 과정은 없다. 회귀 테스트는 `node --test tests/*.test.mjs`로 실행한다.
+
 매일 2회(한국장 마감 16:00 KST · 미국장 마감 07:10 KST) GitHub Actions가 `update.py`를 돌려 `data.json`을 갱신하고,
 `index.html`이 그걸 읽어 그린다. 빌드 스텝 없음.
 
