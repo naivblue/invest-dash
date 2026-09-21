@@ -59,7 +59,7 @@ test('legacy closed history migrates once, survives reload, and isolates second 
   assert.equal(c.run('cycleNumber'),2);
   assert.equal(c.run('closes.length'),0);
   assert.equal(c.run('archives.length'),1);
-  assert.equal(c.run('startNextCycle()'),false);
+  assert.equal(c.elements.get('newCycle').disabled,false);
   c.run("closes.push(['2026-09-22',79,2]); render();");
   assert.equal(c.run('replay().sh'),2);
   assert.equal(c.run('replay().inv'),158);
@@ -106,27 +106,33 @@ test('cycle buttons switch between archived and current histories without overwr
   assert.equal(a.elements.get('apply').disabled,false);
   assert.equal(a.storage.get('tqqq-v2-state-v4'),before);
 });
-test('next-cycle button confirms sale when a stale account anchor still shows holdings',()=>{
+test('next-cycle button works with holdings and never asks or fabricates a sale',()=>{
   const a=app();
   a.run("closes.push(['2026-09-22',79.08]); anchor={d:'2026-09-22',avg:71.0204,sh:37}; render();");
   assert.equal(a.elements.get('newCycle').disabled,false);
+  a.run("confirm=()=>{throw Error('must not ask');}");
   a.elements.get('newCycle').onclick();
   assert.equal(a.run('cycleNumber'),2);
-  assert.equal(a.run('archives[0].state.sh'),0);
-  assert.equal(a.run('archives[0].state.confirmed'),true);
+  assert.equal(a.run('archives[0].state.sh'),37);
+  assert.equal(a.run('archives[0].state.confirmed'),false);
   assert.equal(a.run('closes.length'),0);
   a.elements.get('cycleTab1').onclick();
-  assert.match(a.elements.get('log').innerHTML,/전량 매도 확인/);
+  assert.match(a.elements.get('log').innerHTML,/계좌 확인 37주/);
 });
-test('cancelling completion or failing persistence preserves existing holdings',()=>{
+test('failing persistence preserves existing holdings',()=>{
   const a=app();
   const before=a.run('JSON.stringify({closes,anchor})');
-  a.run('confirm=()=>false');
+  a.run("localStorage.setItem=()=>{throw Error('quota');}");
   a.elements.get('newCycle').onclick();
   assert.equal(a.run('cycleNumber'),1);
   assert.equal(a.run('JSON.stringify({closes,anchor})'),before);
-  a.run("confirm=()=>true; localStorage.setItem=()=>{throw Error('quota');}");
+});
+test('creation is enabled even for an empty active cycle',()=>{
+  const a=app();
   a.elements.get('newCycle').onclick();
-  assert.equal(a.run('cycleNumber'),1);
-  assert.equal(a.run('JSON.stringify({closes,anchor})'),before);
+  assert.equal(a.run('cycleNumber'),2);
+  assert.equal(a.elements.get('newCycle').disabled,false);
+  a.elements.get('newCycle').onclick();
+  assert.equal(a.run('cycleNumber'),3);
+  assert.equal(a.run('closes.length'),0);
 });
