@@ -173,3 +173,17 @@ test('a browser still on the first cycle closes it and opens the second one',()=
   assert.equal(b.run('archives.length'),1);
   assert.equal(b.run('closes.length'),0);
 });
+test('a completed cycle shows its closing state and final return, not zeros',()=>{
+  const a=app(new Map(),true);
+  a.elements.get('cycleTab1').onclick();
+  const strip=a.elements.get('strip').innerHTML;
+  assert.match(strip,/평단 <small>매도 전<\/small>/);
+  assert.match(strip,/\$71\.0204/);            // 계좌 확인 평단이 매도로 지워지지 않는다
+  assert.match(strip,/최종 수익률/);
+  assert.match(strip,/\+11\.35/);              // 79.08 / 71.0204 - 1
+  assert.doesNotMatch(strip,/\$0\.0000/);
+  assert.match(a.elements.get('cycleStatus').innerHTML,/최종 수익률[\s\S]*\+11\.35%/);
+  assert.match(a.elements.get('log').innerHTML,/계좌 확인 37주/);
+  a.elements.get('cycleTab2').onclick();
+  assert.match(a.elements.get('cycleArchives').innerHTML,/최종 수익률[\s\S]*\+11\.35%/);
+});
