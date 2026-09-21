@@ -163,6 +163,7 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 <h2>오늘 밤 걸 주문 <span id="ordDate" class="badge"></span> <button id="copy" class="mini">복사</button></h2>
 <p class="h2sub" id="ordWhen">–</p>
 <div class="ords" id="orders"></div>
+<div class="note" id="cycleStatus" role="status" aria-live="polite"></div>
 <div class="note" id="ordNote"></div>
 
 <h2>아침 입력</h2>
@@ -174,6 +175,7 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
   <div style="flex:1;min-width:100px"><label>보유주수</label><input type="number" id="anSh" step="1" placeholder="31"></div>
   <div style="flex:1;min-width:120px"><label>매수 체결 주수</label><input type="number" id="inBuy" step="1" min="0" placeholder="비우면 추정"></div>
   <button class="primary" id="apply">반영</button>
+  <button id="closeCycle">전량 매도 완료</button>
   <button id="undo">되돌리기</button>
 </div>
 <div class="note" id="guess"></div>
@@ -277,7 +279,7 @@ function guessBuy(px, avg, sh, rnd){
 
 function replay(){
   let cost=0, sh=0; const rows=[];
-  let applied=false;
+  let applied=false, ended=false, confirmed=false;
   for(const row of closes){
     const [d,px,bq,sq]=row;
     const avg=sh?cost/sh:0, rnd=sh/cfg.Q, half=rnd>=20;
@@ -285,14 +287,14 @@ function replay(){
 
     /* 매도: 입력값이 있으면 그대로, 없으면 종가로 추정 */
     if(sq>0) sold=Math.min(sq,sh);
-    else if(!manual && sh){
+    else if(sh){
       if(!half && px>=avg*1.10) sold=sh;
       else if(half && px>=avg*1.10) sold=sh;
       else if(half && px>=avg*1.05) sold=Math.floor(sh/2);
     }
     if(sold>0){ hit.push(`매도 ${sold}주 @$${f2(avg*(sold===sh&&!half?1.10:1.05))}`); sh-=sold; cost=sh*avg; }
 
-    bought = manual ? bq : (sold>0 ? 0 : guessBuy(px,avg,sh,rnd));
+    bought = manual ? bq : (sold>0 || ended ? 0 : guessBuy(px,avg,sh,rnd));
     if(bought>0){
       hit.push(sh===0 ? `첫날 ${bought}주` : `매수 ${bought}주 @$${f2(px)}`);
       sh+=bought; cost+=bought*px;
@@ -305,10 +307,16 @@ function replay(){
       /* 기준점 행은 평단의 근거라 표에 남지만, 그날 체결이 없었으면 그렇게 읽혀야 한다 */
       rec.nofill = rec.hit.length===0;
       rec.hit=[`${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주 · 평단 $${anchor.avg.toFixed(4)}`];
+      ended=sh===0; confirmed=ended;
+      if(ended){ rec.nofill=false; rec.hit=['전량 매도 확인 · 사이클 종료']; }
+    } else if(sold>0 && sh===0){
+      ended=true; confirmed=false;
+      rec.hit.push('사이클 종료 (종가 기준 추정)');
     }
+    if(sh>0){ ended=false; confirmed=false; }
     rows.push(rec);
   }
-  return {rows, inv:cost, sh, last:closes.length?closes[closes.length-1][1]:0};
+  return {rows, inv:cost, sh, ended, confirmed, last:closes.length?closes[closes.length-1][1]:0};
 }
 
 function nextBizDay(iso){
@@ -330,6 +338,10 @@ function render(){
   const val=st.sh*st.last, pl=val-st.inv;
   const wd=['일','월','화','수','목','금','토'];
   const lastD=closes.length?closes[closes.length-1][0]:'';
+  const targetReached=st.sh>0 && st.last>=Number((avg*1.10).toFixed(2));
+  document.getElementById('cycleStatus').innerHTML=st.ended
+    ? `<b>사이클 종료${st.confirmed?' · 전량 매도 확인':' (추정)'}</b><br>보유 0주 · 다음 회차는 자동으로 시작하지 않습니다. 실제 매도 체결가와 실현손익은 증권계좌에서 확인하세요. 새 매수를 시작하면 매수 체결 주수를 직접 입력하세요.`
+    : targetReached ? '<b>+10% 익절 목표 도달 · 매도 확인 필요</b><br>입력한 계좌 보유주수가 남아 있어 종료로 확정하지 않았습니다. 실제로 전부 팔렸다면 거래일·종가를 확인하고 [전량 매도 완료]를 누르세요.' : '';
 
   document.getElementById('strip').innerHTML=[
     ['회차', rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
@@ -354,14 +366,15 @@ function render(){
     when+' 장 마감에 체결 판정 · '+(half?'후반전 (회차 20 이상)':'전반전 (회차 20 미만)');
 
   const O=[], H=halfQ();
-  if(done){ O.push(['s','매수 없음',cfg.T+'회차 소진 — 쿼터손절 모드',null,null]); }
+  if(st.ended || targetReached){ O.push(['s','주문 보류',st.ended?'사이클 종료 · 신규 주문 없음':'익절 목표 도달 · 실제 매도 체결 확인 후 주문하세요',null,null]); }
+  else if(done){ O.push(['s','매수 없음',cfg.T+'회차 소진 — 쿼터손절 모드',null,null]); }
   else if(!half){
     O.push(['b','LOC 매수 ①','평단 지정가', avg, H]);
     O.push(['b','LOC 매수 ②','평단+5% 지정가', avg*1.05, H]);
   } else {
     O.push(['b','LOC 매수','평단 지정가 · 평단 위에서는 매수 금지', avg, cfg.Q]);
   }
-  if(st.sh>0){
+  if(st.sh>0 && !targetReached){
     if(!half) O.push(['s','지정가 매도','평단+10% · 전량', avg*1.10, st.sh]);
     else{ O.push(['s','분할매도 ①','평단+5% · 절반', avg*1.05, Math.floor(st.sh/2)]);
           O.push(['s','분할매도 ②','평단+10% · 나머지', avg*1.10, st.sh-Math.floor(st.sh/2)]); }
@@ -380,7 +393,7 @@ function render(){
 
   const gapLo=avg*1.05, gapHi=avg*1.10;
   const useAll=cfg.T*cfg.Q*avg, spare=P-useAll;
-  document.getElementById('ordNote').innerHTML= done
+  document.getElementById('ordNote').innerHTML= st.ended || targetReached ? '' : done
     ? '<b>'+cfg.T+'회차를 다 썼습니다.</b> 더 매수하지 않고 익절가 도달까지 기다리거나 쿼터손절 규칙으로 넘어갑니다.'
     : `종가가 <b>$${f2(gapLo)} 초과 ~ $${f2(gapHi)} 미만</b>이면 <b>데드존</b> — 매수도 매도도 체결되지 않습니다.
        마지막 종가 $${f2(st.last)} 기준 익절까지 <b>${((gapHi/st.last-1)*100).toFixed(1)}%</b> 남았습니다.<br>
@@ -429,7 +442,16 @@ document.getElementById('apply').onclick=()=>{
   const bq=buyRaw===''?undefined:Math.max(0,parseInt(buyRaw,10)||0);   /* 0 이면 미체결로 기록, 비우면 규칙으로 추정 */
   closes=closes.filter(c=>c[0]!==d); closes.push([d,px,bq,0]); closes.sort((a,b)=>a[0]<b[0]?-1:1);
   /* 계좌 평단·보유를 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선 */
-  if(avg>0 && sh>=0) anchor={d,avg,sh};
+  if(sh===0 || (avg>0 && sh>0)) anchor={d,avg:sh===0?0:avg,sh};
+  ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
+};
+document.getElementById('closeCycle').onclick=()=>{
+  const d=document.getElementById('inDate').value;
+  const px=parseFloat(document.getElementById('inPx').value);
+  if(!d||!(px>0)){ alert('실제 매도한 미국 거래일과 종가를 입력해주세요.'); return; }
+  if(!confirm(d+' 전량 매도 완료로 기록할까요? 보유주수는 0주가 됩니다.')) return;
+  closes=closes.filter(c=>c[0]!==d); closes.push([d,px,0,0]); closes.sort((a,b)=>a[0].localeCompare(b[0]));
+  anchor={d,avg:0,sh:0};
   ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
 };
 document.getElementById('copy').onclick=async e=>{
