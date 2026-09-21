@@ -106,3 +106,27 @@ test('cycle buttons switch between archived and current histories without overwr
   assert.equal(a.elements.get('apply').disabled,false);
   assert.equal(a.storage.get('tqqq-v2-state-v4'),before);
 });
+test('next-cycle button confirms sale when a stale account anchor still shows holdings',()=>{
+  const a=app();
+  a.run("closes.push(['2026-09-22',79.08]); anchor={d:'2026-09-22',avg:71.0204,sh:37}; render();");
+  assert.equal(a.elements.get('newCycle').disabled,false);
+  a.elements.get('newCycle').onclick();
+  assert.equal(a.run('cycleNumber'),2);
+  assert.equal(a.run('archives[0].state.sh'),0);
+  assert.equal(a.run('archives[0].state.confirmed'),true);
+  assert.equal(a.run('closes.length'),0);
+  a.elements.get('cycleTab1').onclick();
+  assert.match(a.elements.get('log').innerHTML,/전량 매도 확인/);
+});
+test('cancelling completion or failing persistence preserves existing holdings',()=>{
+  const a=app();
+  const before=a.run('JSON.stringify({closes,anchor})');
+  a.run('confirm=()=>false');
+  a.elements.get('newCycle').onclick();
+  assert.equal(a.run('cycleNumber'),1);
+  assert.equal(a.run('JSON.stringify({closes,anchor})'),before);
+  a.run("confirm=()=>true; localStorage.setItem=()=>{throw Error('quota');}");
+  a.elements.get('newCycle').onclick();
+  assert.equal(a.run('cycleNumber'),1);
+  assert.equal(a.run('JSON.stringify({closes,anchor})'),before);
+});
