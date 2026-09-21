@@ -87,3 +87,22 @@ test('storage failure leaves the completed cycle and its history intact',()=>{
   assert.equal(a.run('cycleNumber'),1);
   assert.equal(a.run('JSON.stringify({closes,anchor})'),original);
 });
+test('cycle buttons switch between archived and current histories without overwriting storage',()=>{
+  const a=app();
+  a.run("anchor={d:'2026-09-21',avg:0,sh:0}; closes.push(['2026-09-21',79.08,0]); startNextCycle(); closes.push(['2026-09-22',80,2]); render();");
+  const before=a.storage.get('tqqq-v2-state-v4');
+  assert.match(a.elements.get('cycleTabs').innerHTML,/1회차 · 완료/);
+  assert.match(a.elements.get('cycleTabs').innerHTML,/2회차/);
+  a.elements.get('cycleTab1').onclick();
+  assert.equal(a.elements.get('cycleTitle').textContent,'1회차 · 완료');
+  assert.match(a.elements.get('log').innerHTML,/2026-08-17/);
+  assert.equal(a.elements.get('apply').disabled,true);
+  assert.equal(a.storage.get('tqqq-v2-state-v4'),before);
+  assert.equal(a.run('cycleNumber'),2);
+  a.elements.get('cycleTab2').onclick();
+  assert.equal(a.elements.get('cycleTitle').textContent,'2회차 · 진행 중');
+  assert.doesNotMatch(a.elements.get('log').innerHTML,/2026-08-17/);
+  assert.match(a.elements.get('log').innerHTML,/2026-09-22/);
+  assert.equal(a.elements.get('apply').disabled,false);
+  assert.equal(a.storage.get('tqqq-v2-state-v4'),before);
+});

@@ -143,7 +143,8 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
   <h1>무한매수 주문 계산기</h1>
   <p class="sub">1회 매수 주수는 아래 설정을 따릅니다. 사이클별 체결이력과 입력값은 이 브라우저에만 저장됩니다.</p>
 </header>
-<div class="note"><b id="cycleTitle">1차 사이클</b> · 매수 진행은 사이클별 최대 40회입니다.
+<div id="cycleTabs" class="row" aria-label="거래 회차 선택"></div>
+<div class="note"><b id="cycleTitle">1회차</b> · 각 회차는 최대 40분할 매수로 진행합니다.
   <button id="newCycle">다음 사이클 만들기</button>
 </div>
 
@@ -234,6 +235,7 @@ const ANCHOR0={d:'2026-09-18', avg:71.0204, sh:37};
 let anchor={...ANCHOR0};
 let cfg={...DEF}, closes=HIST.slice();
 let cycleNumber=1, archives=[], referenceClose=null;
+let viewingArchive=null;
 
 try{
   const s=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -342,9 +344,35 @@ function ret(r){
 }
 
 function render(){
+  const activeNumber=cycleNumber;
+  const archive=archives.find(a=>a.number===viewingArchive);
+  const saved={cfg,closes,anchor,cycleNumber,referenceClose};
+  try{
+    if(archive){ cfg=archive.cfg; closes=archive.closes; anchor=archive.anchor; cycleNumber=archive.number; referenceClose=null; }
+    renderCurrent();
+  }finally{
+    ({cfg,closes,anchor,cycleNumber,referenceClose}=saved);
+  }
+  const selected=archive?archive.number:activeNumber;
+  document.getElementById('cycleTabs').innerHTML=[...archives.map(a=>({number:a.number,closed:true})),{number:activeNumber,closed:false}].map(c=>`<button id="cycleTab${c.number}" class="${c.number===selected?'primary':''}" aria-pressed="${c.number===selected}">${c.number}회차${c.closed?' · 완료':''}</button>`).join('');
+  for(const number of [...archives.map(a=>a.number),activeNumber]){
+    document.getElementById('cycleTab'+number).onclick=()=>{ viewingArchive=number===activeNumber?null:number; render(); };
+  }
+  for(const id of ['apply','closeCycle','undo','cfgP','cfgFx','cfgT','cfgQ','inDate','inPx','anAvg','anSh','inBuy']) document.getElementById(id).disabled=!!archive;
+  document.getElementById('reset').disabled=!!archive || cycleNumber>1;
+  document.getElementById('newCycle').hidden=!!archive;
+  document.getElementById('cycleArchives').hidden=true;
+  if(archive){
+    document.getElementById('ordWhen').textContent=archive.start+' ~ '+archive.end+' · 완료된 회차 조회';
+    document.getElementById('cycleStatus').innerHTML='<b>'+archive.number+'회차 완료 · 보관된 체결이력</b><br>새 거래를 입력하려면 상단의 '+activeNumber+'회차 버튼을 누르세요.';
+  }
+}
+
+function renderCurrent(){
   const st=replay(), ONE=one(), P=usdP();
   const waiting=closes.length===0;
-  document.getElementById('cycleTitle').textContent=cycleNumber+'차 사이클'+(waiting?' · 첫 매수 대기':st.ended?' · 종료':' · 진행 중');
+  document.getElementById('cycleTitle').textContent=cycleNumber+'회차'+(waiting?' · 첫 매수 대기':st.ended?' · 완료':' · 진행 중');
+  document.getElementById('newCycle').textContent=(cycleNumber+1)+'회차 새로 만들기';
   document.getElementById('newCycle').disabled=!st.ended;
   document.getElementById('reset').disabled=cycleNumber>1;
   document.getElementById('cycleArchives').innerHTML=archives.map(a=>`<details><summary>${a.number}차 사이클 · 종료 · ${a.start} ~ ${a.end}</summary><p class="h2sub">종료 시 보유 ${a.state.sh}주 · ${a.state.confirmed?'전량 매도 확인':'종가 기준 매도 추정'} · 실현손익은 계좌 확인 필요</p><div class="scroll"><table><thead><tr><th>날짜</th><th>종가</th><th>매수 회차</th><th>체결</th><th>보유</th></tr></thead><tbody>${a.state.rows.filter(r=>r.hit.length&&!r.nofill).slice().reverse().map(r=>`<tr><td>${r.d}</td><td>$${f2(r.px)}</td><td>${r.rnd.toFixed(1)}</td><td>${r.hit.join(' + ')}</td><td>${r.sh}주</td></tr>`).join('')}</tbody></table></div></details>`).join('');
@@ -444,10 +472,11 @@ function render(){
   document.getElementById('inDate').value=lastD||(referenceClose?nextBizDay(referenceClose.d):'');
   document.getElementById('inPx').value=lastD?f2(st.last):'';
   document.getElementById('inDateL').textContent = lastD ? '거래일 — '+lastK+' 장 (간밤)' : '거래일';
-  try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));}catch(e){ document.getElementById('cycleStatus').textContent+=' 저장 실패: 브라우저 저장 공간을 확인하고 창을 닫지 마세요.'; }
+  if(viewingArchive===null) try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));}catch(e){ document.getElementById('cycleStatus').textContent+=' 저장 실패: 브라우저 저장 공간을 확인하고 창을 닫지 마세요.'; }
 }
 
 function startNextCycle(){
+  if(viewingArchive!==null) return false;
   const state=replay();
   if(!state.ended || !closes.length) return false;
   const snapshot=JSON.parse(JSON.stringify({number:cycleNumber,cfg,closes,anchor,state,start:closes[0][0],end:closes[closes.length-1][0]}));
@@ -464,6 +493,7 @@ function startNextCycle(){
 document.getElementById('newCycle').onclick=()=>{ if(startNextCycle()) render(); };
 
 document.getElementById('apply').onclick=()=>{
+  if(viewingArchive!==null) return;
   const d=document.getElementById('inDate').value;
   const px=parseFloat(document.getElementById('inPx').value);
   const avg=parseFloat(document.getElementById('anAvg').value);
@@ -480,6 +510,7 @@ document.getElementById('apply').onclick=()=>{
   ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
 };
 document.getElementById('closeCycle').onclick=()=>{
+  if(viewingArchive!==null) return;
   const d=document.getElementById('inDate').value;
   const px=parseFloat(document.getElementById('inPx').value);
   if(!d||!(px>0)){ alert('실제 매도한 미국 거래일과 종가를 입력해주세요.'); return; }
