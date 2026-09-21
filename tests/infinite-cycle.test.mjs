@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const script=readFileSync(new URL('../infinite-buying/index.html',import.meta.url),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-const SALE_FLAG='tqqq-v2-state-v4-first-sale-v2';
+const SALE_FLAG='tqqq-v2-state-v4-first-sale-v3';
 /* 기본값은 1회차 매도 정정을 이미 끝낸 기기 — 사이클 기본 동작을 그대로 검증한다.
    correct=true 면 정정 전 기기처럼 열어 마이그레이션 자체를 검증한다. */
 function app(storage=new Map(),correct=false){
@@ -186,4 +186,21 @@ test('a completed cycle shows its closing state and final return, not zeros',()=
   assert.match(a.elements.get('log').innerHTML,/계좌 확인 37주/);
   a.elements.get('cycleTab2').onclick();
   assert.match(a.elements.get('cycleArchives').innerHTML,/최종 수익률[\s\S]*\+11\.35%/);
+});
+test('an earlier correction that wiped the account anchor is redone from the backup',()=>{
+  const a=app();
+  // v2 정정이 끝난 기기: 기준점이 매도일 0주로 덮여 평단이 종가 추정으로 남아 있다
+  a.run("closes=closes.filter(c=>c[0]<'2026-09-22').concat([['2026-09-22',79.08,0,0]]); anchor={d:'2026-09-22',avg:0,sh:0}; startNextCycle();");
+  a.storage.set('tqqq-v2-state-v4-before-first-sale-correction',JSON.stringify({
+    cfg:{P:10000000,fx:1351.1,T:40,Q:2},
+    closes:[["2026-08-17",77.18],["2026-09-17",71.38,1],["2026-09-18",72.64]],
+    anchor:{d:'2026-09-18',avg:71.0204,sh:37}, cycleNumber:1, archives:[], referenceClose:null}));
+  assert.equal(a.run('archives[0].anchor.sh'),0);
+  const b=app(a.storage,true);
+  assert.equal(b.run('archives[0].anchor.avg'),71.0204);      // 계좌 평단이 되살아난다
+  assert.equal(b.run('archives[0].state.sh'),0);
+  assert.equal(b.run('archives[0].state.confirmed'),true);
+  b.elements.get('cycleTab1').onclick();
+  assert.match(b.elements.get('strip').innerHTML,/\$71\.0204/);
+  assert.match(b.elements.get('strip').innerHTML,/\+11\.35/);
 });

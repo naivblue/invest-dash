@@ -46,12 +46,15 @@ h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px}
 .sub{font-size:13.5px;color:var(--ink2);margin:0}
 
 /* status strip */
-.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
+/* 균등분할(grid)은 칸이 내용보다 좁아져 값·라벨이 접혔다.
+   내용 너비를 보장하고 남는 폭만 나눠 갖게 한다 — 좁은 화면에서는 칸 단위로 줄바꿈된다. */
+.strip{display:flex;flex-wrap:wrap;gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:20px 0 0;box-shadow:var(--lift)}
-.cell{background:var(--panel);padding:13px 15px}
+.cell{background:var(--panel);padding:13px 12px;flex:1 1 auto}
 .cell .k small{font-size:9px;opacity:.7}
-.cell .k{font-family:var(--m);font-size:10px;letter-spacing:.08em;color:var(--ink3);margin:0 0 4px;text-transform:uppercase}
-.cell .v{font-family:var(--m);font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:0}
+/* 라벨·값이 접히면 칸마다 높이가 달라져 줄이 어긋난다 — 한 줄로 고정한다 */
+.cell .k{font-family:var(--m);font-size:10px;letter-spacing:.08em;color:var(--ink3);margin:0 0 4px;text-transform:uppercase;white-space:nowrap}
+.cell .v{font-family:var(--m);font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:0;white-space:nowrap}
 .cell .v small{font-size:12px;font-weight:500;color:var(--ink3)}
 .pos{color:var(--buy)} .neg{color:var(--sell)}
 
@@ -411,10 +414,10 @@ function renderCurrent(){
     /* 실시간 시세가 아니라 마지막 종가다 — 정적 페이지는 시세를 못 가져온다(CSP) */
     [(closing?'매도일 종가':'종가')+' <small>'+(lastD?lastD.slice(5):'')+'</small>', '$'+f2(st.last)],
     [closing?'매도 <small>전량</small>':'보유', (closing?closing.sh:st.sh)+'<small>주</small>'],
-    [(closing?'실현손익':'평가손익')+' <small>종가기준</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+won(pl*cfg.fx)+'<small>원</small></span>'],
+    [(closing?'실현손익':'평가손익')+' <small>종가</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+won(pl*cfg.fx)+'<small>원</small></span>'],
     /* 수익률은 투입금 대비 — 익절선(+10%)과 같은 잣대라 이게 실제 판단 기준이다 */
-    [(closing?'최종 수익률':'수익률')+' <small>종가·투입대비</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(base.inv?pl/base.inv*100:0).toFixed(2)+'<small>%</small></span>'],
-    ['원금대비 <small>1,000만</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(pl/P*100).toFixed(2)+'<small>%</small></span>']
+    [(closing?'최종 수익률':'수익률')+' <small>투입대비</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(base.inv?pl/base.inv*100:0).toFixed(2)+'<small>%</small></span>'],
+    ['원금대비 <small>1천만</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(pl/P*100).toFixed(2)+'<small>%</small></span>']
   ].map(([k,v])=>`<div class="cell"><p class="k">${k}</p><p class="v">${v}</p></div>`).join('');
 
   document.getElementById('pRound').textContent=rnd.toFixed(1);
@@ -555,13 +558,13 @@ document.getElementById('reset').onclick=()=>{ if(cycleNumber>1) return; closes=
 /* 사용자 확인: 1회차는 2026-09-22 전량 매도 완료.
    기기마다 남아 있는 37주 기준점을 한 번만 정정한다 (플래그로 한 번만 실행).
    실제 체결단가를 종가로 간주하거나 실현손익을 만들지 않는다. */
-const FIRST_SALE={d:'2026-09-22', px:79.08}, SALE_FLAG=KEY+'-first-sale-v2';
+const FIRST_SALE={d:'2026-09-22', px:79.08}, SALE_FLAG=KEY+'-first-sale-v3', SALE_BACKUP=KEY+'-before-first-sale-correction';
 function reflectFirstCycleSale(){
   try{ if(localStorage.getItem(SALE_FLAG)) return; }catch(e){ return; }
   const first=archives.find(a=>a.number===1);
   const mark=()=>{ try{ localStorage.setItem(SALE_FLAG,'1'); }catch(e){} };
   if(!first && cycleNumber!==1) return mark();        // 1회차 기록이 없는 기기 — 손댈 것이 없다
-  try{ localStorage.setItem(KEY+'-before-first-sale-correction',JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose})); }
+  try{ if(!localStorage.getItem(SALE_BACKUP)) localStorage.setItem(SALE_BACKUP,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose})); }
   catch(e){ alert('1회차 정정 전 백업에 실패해 기존 기록을 유지합니다.'); return; }
   /* 계좌 기준점(평단)은 그대로 두고 매도 주수만 기록한다 — 평단을 지우면 최종 수익률이 사라진다 */
   const sellAll=()=>{
@@ -573,10 +576,18 @@ function reflectFirstCycleSale(){
     return true;
   };
   if(first){                                          // 이미 보관된 1회차를 정정한다
+    /* 앞선 정정(v2)이 계좌 기준점까지 지워 평단이 종가 추정으로 어긋났다.
+       정정 전 백업이 남아 있으면 그 1회차를 원본으로 삼아 기준점을 살린 채 다시 정정한다. */
+    let src=first;
+    try{
+      const b=JSON.parse(localStorage.getItem(SALE_BACKUP)||'null');
+      const o=b && (b.cycleNumber===1 ? {cfg:b.cfg,closes:b.closes,anchor:b.anchor} : (b.archives||[]).find(a=>a.number===1));
+      if(o && o.closes && o.closes.length) src=o;
+    }catch(e){}
     const saved={cfg,closes,anchor,cycleNumber};
     try{
-      cfg=first.cfg; closes=first.closes.slice(); anchor=first.anchor; cycleNumber=1;
-      if(sellAll()){ first.closes=closes; first.anchor=anchor; first.state=replay(); first.end=FIRST_SALE.d; first.saleConfirmedByUser=true; }
+      cfg=src.cfg||first.cfg; closes=src.closes.slice(); anchor=src.anchor; cycleNumber=1;
+      if(sellAll()){ first.cfg=cfg; first.closes=closes; first.anchor=anchor; first.state=replay(); first.start=closes[0][0]; first.end=FIRST_SALE.d; first.saleConfirmedByUser=true; }
     }finally{ ({cfg,closes,anchor,cycleNumber}=saved); }
   }else{                                              // 1회차가 아직 진행 중 — 아래에서 보관되고 2회차가 열린다
     sellAll();
