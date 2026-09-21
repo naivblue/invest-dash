@@ -141,8 +141,11 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 <header>
   <p class="eyebrow">INFINITE BUYING V2.0 · TQQQ</p>
   <h1>무한매수 주문 계산기</h1>
-  <p class="sub">2026-08-17 시작 · 1회 2주 고정 · 매일 종가를 넣으면 평단과 다음 주문이 갱신됩니다. 입력값은 이 브라우저에만 저장됩니다.</p>
+  <p class="sub">1회 매수 주수는 아래 설정을 따릅니다. 사이클별 체결이력과 입력값은 이 브라우저에만 저장됩니다.</p>
 </header>
+<div class="note"><b id="cycleTitle">1차 사이클</b> · 매수 진행은 사이클별 최대 40회입니다.
+  <button id="newCycle">다음 사이클 만들기</button>
+</div>
 
 <div class="strip" id="strip"></div>
 
@@ -190,6 +193,7 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 </div>
 
 <h2>체결 이력</h2>
+<div id="cycleArchives"></div>
 <p class="h2sub">체결이 있었던 날만 나옵니다. 주문을 안 걸었거나 미체결이면 그날은 표에 없고, 맨 위 행의 평단·보유가 곧 현재 값입니다.</p>
 <div class="scroll"><table>
   <thead><tr><th>날짜</th><th>종가</th><th>회차</th><th>평단 (거래 후)</th><th>수익률</th><th>체결</th><th>투입 누적</th><th>보유</th></tr></thead>
@@ -229,12 +233,17 @@ const DEF={P:10000000,fx:1351.1,T:40,Q:2};   // Q = 1회 매수 주수
 const ANCHOR0={d:'2026-09-18', avg:71.0204, sh:37};
 let anchor={...ANCHOR0};
 let cfg={...DEF}, closes=HIST.slice();
+let cycleNumber=1, archives=[], referenceClose=null;
 
 try{
   const s=JSON.parse(localStorage.getItem(KEY)||'null');
   if(s){
+    cycleNumber=Number.isInteger(s.cycleNumber)&&s.cycleNumber>0?s.cycleNumber:1;
+    archives=Array.isArray(s.archives)?s.archives:[];
+    referenceClose=s.referenceClose||null;
     cfg={...DEF, ...(s.cfg||{})};            // 병합 — 통째로 교체하지 않는다
-    if(Array.isArray(s.closes) && s.closes.length) closes=s.closes;
+    if(Array.isArray(s.closes) && (s.closes.length || cycleNumber>1)) closes=s.closes;
+    if(cycleNumber>1) anchor=null;
     if(s.anchor && s.anchor.d) anchor=s.anchor;
   }
 }catch(e){}
@@ -247,10 +256,10 @@ for(const k of Object.keys(DEF)){
 const toQty=(v,dflt)=>(v===undefined||v===null||v==='')?dflt:Math.max(0,parseInt(v,10)||0);
 closes=closes.filter(c=>Array.isArray(c)&&c.length>=2&&Number.isFinite(Number(c[1]))&&Number(c[1])>0)
              .map(c=>[c[0],Number(c[1]),toQty(c[2],undefined),toQty(c[3],0)]);
-if(!closes.length) closes=HIST.slice();
+if(!closes.length && cycleNumber===1) closes=HIST.slice();
 /* HIST는 매일 아침 자동으로 갱신되어 재배포된다.
    저장본에 없는 날짜만 채워 넣는다 — 사용자가 직접 넣은 행(체결주수 포함)이 항상 이긴다 */
-{ const byD=Object.fromEntries(closes.map(c=>[c[0],c]));
+if(cycleNumber===1){ const byD=Object.fromEntries(closes.map(c=>[c[0],c]));
   for(const h of HIST){
     const cur=byD[h[0]];
     if(!cur) closes.push([h[0],Number(h[1]),toQty(h[2],undefined),toQty(h[3],0)]);
@@ -261,7 +270,7 @@ if(!closes.length) closes=HIST.slice();
 
 /* 브라우저에 오래된 계좌 기준점이 남아 있으면 최신 확인값(ANCHOR0)이 이긴다.
    ANCHOR0 날짜가 지금 데이터에 없으면(다른 기간을 보고 있으면) 저장본을 그대로 둔다. */
-if(anchor && anchor.d < ANCHOR0.d && closes.some(c=>c[0]===ANCHOR0.d)) anchor={...ANCHOR0};
+if(cycleNumber===1 && anchor && anchor.d < ANCHOR0.d && closes.some(c=>c[0]===ANCHOR0.d)) anchor={...ANCHOR0};
 
 const usdP=()=>cfg.P/cfg.fx, one=()=>cfg.Q;   // 1회분 = Q주 (정수 매수)
 const halfQ=()=>Math.max(1,Math.floor(cfg.Q/2));
@@ -294,7 +303,7 @@ function replay(){
     }
     if(sold>0){ hit.push(`매도 ${sold}주 @$${f2(avg*(sold===sh&&!half?1.10:1.05))}`); sh-=sold; cost=sh*avg; }
 
-    bought = manual ? bq : (sold>0 || ended ? 0 : guessBuy(px,avg,sh,rnd));
+    bought = manual ? bq : (sold>0 || ended || (cycleNumber>1 && sh===0) ? 0 : guessBuy(px,avg,sh,rnd));
     if(bought>0){
       hit.push(sh===0 ? `첫날 ${bought}주` : `매수 ${bought}주 @$${f2(px)}`);
       sh+=bought; cost+=bought*px;
@@ -334,14 +343,19 @@ function ret(r){
 
 function render(){
   const st=replay(), ONE=one(), P=usdP();
+  const waiting=closes.length===0;
+  document.getElementById('cycleTitle').textContent=cycleNumber+'차 사이클'+(waiting?' · 첫 매수 대기':st.ended?' · 종료':' · 진행 중');
+  document.getElementById('newCycle').disabled=!st.ended;
+  document.getElementById('reset').disabled=cycleNumber>1;
+  document.getElementById('cycleArchives').innerHTML=archives.map(a=>`<details><summary>${a.number}차 사이클 · 종료 · ${a.start} ~ ${a.end}</summary><p class="h2sub">종료 시 보유 ${a.state.sh}주 · ${a.state.confirmed?'전량 매도 확인':'종가 기준 매도 추정'} · 실현손익은 계좌 확인 필요</p><div class="scroll"><table><thead><tr><th>날짜</th><th>종가</th><th>매수 회차</th><th>체결</th><th>보유</th></tr></thead><tbody>${a.state.rows.filter(r=>r.hit.length&&!r.nofill).slice().reverse().map(r=>`<tr><td>${r.d}</td><td>$${f2(r.px)}</td><td>${r.rnd.toFixed(1)}</td><td>${r.hit.join(' + ')}</td><td>${r.sh}주</td></tr>`).join('')}</tbody></table></div></details>`).join('');
   const avg=st.sh?st.inv/st.sh:0, rnd=st.sh/cfg.Q, half=rnd>=20, done=rnd>=cfg.T;
   const val=st.sh*st.last, pl=val-st.inv;
   const wd=['일','월','화','수','목','금','토'];
   const lastD=closes.length?closes[closes.length-1][0]:'';
   const targetReached=st.sh>0 && st.last>=Number((avg*1.10).toFixed(2));
   document.getElementById('cycleStatus').innerHTML=st.ended
-    ? `<b>사이클 종료${st.confirmed?' · 전량 매도 확인':' (추정)'}</b><br>보유 0주 · 다음 회차는 자동으로 시작하지 않습니다. 실제 매도 체결가와 실현손익은 증권계좌에서 확인하세요. 새 매수를 시작하면 매수 체결 주수를 직접 입력하세요.`
-    : targetReached ? '<b>+10% 익절 목표 도달 · 매도 확인 필요</b><br>입력한 계좌 보유주수가 남아 있어 종료로 확정하지 않았습니다. 실제로 전부 팔렸다면 거래일·종가를 확인하고 [전량 매도 완료]를 누르세요.' : '';
+    ? `<b>사이클 종료${st.confirmed?' · 전량 매도 확인':' (추정)'}</b><br>보유 0주 · 실제 매도 체결가와 실현손익은 증권계좌에서 확인하세요. [다음 사이클 만들기]를 누르면 이력을 보관하고 빈 사이클을 엽니다. 매수는 자동 기록하지 않습니다.`
+    : waiting ? '<b>새 사이클 · 첫 매수 대기</b><br>이전 사이클의 거래는 아래 종료 이력에 보관했습니다. 실제 첫 매수 후 거래일·가격·매수 체결 주수를 입력하세요. 아직 매수한 것으로 기록하지 않습니다.' : targetReached ? '<b>+10% 익절 목표 도달 · 매도 확인 필요</b><br>입력한 계좌 보유주수가 남아 있어 종료로 확정하지 않았습니다. 실제로 전부 팔렸다면 거래일·종가를 확인하고 [전량 매도 완료]를 누르세요.' : '';
 
   document.getElementById('strip').innerHTML=[
     ['회차', rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
@@ -359,14 +373,15 @@ function render(){
   document.getElementById('pInv').textContent='투입 '+won(st.inv*cfg.fx)+'원 · 40회차 예상소진 '+won(cfg.T*cfg.Q*avg*cfg.fx)+'원';
   document.getElementById('pFill').style.width=Math.min(100,rnd/cfg.T*100)+'%';
 
-  const when=closes.length?nextBizDay(closes[closes.length-1][0]):'–';
+  const when=closes.length?nextBizDay(closes[closes.length-1][0]):referenceClose?nextBizDay(referenceClose.d):'–';
   const kd=when==='–'?'–':`${+when.slice(5,7)}/${+when.slice(8,10)}(${wd[new Date(when+'T00:00:00Z').getUTCDay()]}) 밤`;
   document.getElementById('ordDate').textContent=kd;
   document.getElementById('ordWhen').textContent=
     when+' 장 마감에 체결 판정 · '+(half?'후반전 (회차 20 이상)':'전반전 (회차 20 미만)');
 
   const O=[], H=halfQ();
-  if(st.ended || targetReached){ O.push(['s','주문 보류',st.ended?'사이클 종료 · 신규 주문 없음':'익절 목표 도달 · 실제 매도 체결 확인 후 주문하세요',null,null]); }
+  if(waiting){ O.push(['b','첫 매수 대기','첫 매수 '+cfg.Q+'주 설정 · 평단이 없어 LOC 주문가를 계산하지 않습니다',null,null]); }
+  else if(st.ended || targetReached){ O.push(['s','주문 보류',st.ended?'사이클 종료 · 신규 주문 없음':'익절 목표 도달 · 실제 매도 체결 확인 후 주문하세요',null,null]); }
   else if(done){ O.push(['s','매수 없음',cfg.T+'회차 소진 — 쿼터손절 모드',null,null]); }
   else if(!half){
     O.push(['b','LOC 매수 ①','평단 지정가', avg, H]);
@@ -393,7 +408,7 @@ function render(){
 
   const gapLo=avg*1.05, gapHi=avg*1.10;
   const useAll=cfg.T*cfg.Q*avg, spare=P-useAll;
-  document.getElementById('ordNote').innerHTML= st.ended || targetReached ? '' : done
+  document.getElementById('ordNote').innerHTML= waiting || st.ended || targetReached ? '' : done
     ? '<b>'+cfg.T+'회차를 다 썼습니다.</b> 더 매수하지 않고 익절가 도달까지 기다리거나 쿼터손절 규칙으로 넘어갑니다.'
     : `종가가 <b>$${f2(gapLo)} 초과 ~ $${f2(gapHi)} 미만</b>이면 <b>데드존</b> — 매수도 매도도 체결되지 않습니다.
        마지막 종가 $${f2(st.last)} 기준 익절까지 <b>${((gapHi/st.last-1)*100).toFixed(1)}%</b> 남았습니다.<br>
@@ -426,11 +441,27 @@ function render(){
   /* 아침 입력 = 간밤에 끝난 장(마지막 종가일). 오늘 밤 주문(when)은 그 다음 거래일이다.
      종가는 7시 자동 갱신으로 이미 들어와 있으니 미리 채우고, 사용자는 계좌 평단·보유주수만 넣는다 */
   const lastK=lastD?`${+lastD.slice(5,7)}/${+lastD.slice(8,10)}(${wd[new Date(lastD+'T00:00:00Z').getUTCDay()]})`:'';
-  document.getElementById('inDate').value=lastD;
+  document.getElementById('inDate').value=lastD||(referenceClose?nextBizDay(referenceClose.d):'');
   document.getElementById('inPx').value=lastD?f2(st.last):'';
   document.getElementById('inDateL').textContent = lastD ? '거래일 — '+lastK+' 장 (간밤)' : '거래일';
-  try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));}catch(e){ document.getElementById('cycleStatus').textContent+=' 저장 실패: 브라우저 저장 공간을 확인하고 창을 닫지 마세요.'; }
 }
+
+function startNextCycle(){
+  const state=replay();
+  if(!state.ended || !closes.length) return false;
+  const snapshot=JSON.parse(JSON.stringify({number:cycleNumber,cfg,closes,anchor,state,start:closes[0][0],end:closes[closes.length-1][0]}));
+  const nextReference={d:snapshot.end,px:state.last};
+  // 이전 상태를 별도 백업한 다음 저장에 성공한 경우에만 새 사이클로 이동한다.
+  try{
+    localStorage.setItem(KEY+'-before-cycle-'+cycleNumber,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));
+    localStorage.setItem(KEY,JSON.stringify({cfg,closes:[],anchor:null,cycleNumber:cycleNumber+1,archives:[...archives,snapshot],referenceClose:nextReference}));
+  }catch(e){ alert('저장하지 못해 기존 사이클을 유지합니다. 브라우저 저장 공간을 확인해주세요.'); return false; }
+  archives.push(snapshot); referenceClose=nextReference;
+  cycleNumber++; closes=[]; anchor=null;
+  return true;
+}
+document.getElementById('newCycle').onclick=()=>{ if(startNextCycle()) render(); };
 
 document.getElementById('apply').onclick=()=>{
   const d=document.getElementById('inDate').value;
@@ -439,6 +470,9 @@ document.getElementById('apply').onclick=()=>{
   const sh=parseInt(document.getElementById('anSh').value,10);
   if(!d||!(px>0)){ alert('거래일과 종가는 반드시 넣어주세요.'); return; }
   const buyRaw=document.getElementById('inBuy').value;
+  if(cycleNumber>1 && closes.length===0 && buyRaw===''){
+    alert('첫 매수 체결 주수를 입력해주세요. 매수하지 않았다면 0을 입력하세요.'); return;
+  }
   const bq=buyRaw===''?undefined:Math.max(0,parseInt(buyRaw,10)||0);   /* 0 이면 미체결로 기록, 비우면 규칙으로 추정 */
   closes=closes.filter(c=>c[0]!==d); closes.push([d,px,bq,0]); closes.sort((a,b)=>a[0]<b[0]?-1:1);
   /* 계좌 평단·보유를 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선 */
@@ -460,13 +494,15 @@ document.getElementById('copy').onclick=async e=>{
   setTimeout(()=>e.target.textContent='복사',1400);
 };
 document.getElementById('undo').onclick=()=>{ if(closes.length>1){ const d=closes.pop()[0]; if(anchor&&anchor.d===d) anchor=null; render(); } };
-document.getElementById('reset').onclick=()=>{ closes=HIST.slice(); render(); };
+document.getElementById('reset').onclick=()=>{ if(cycleNumber>1) return; closes=HIST.slice(); render(); };
 ['cfgP','cfgFx','cfgT','cfgQ'].forEach(id=>document.getElementById(id).onchange=e=>{
   const key={cfgP:'P',cfgFx:'fx',cfgT:'T',cfgQ:'Q'}[id], v=Number(e.target.value);
   if(Number.isFinite(v)&&v>0){ cfg[key]=v; } else { e.target.value=cfg[key]; }
   render();
 });
 
+// 기존 브라우저에서 종료된 첫 사이클은 한 번만 보관하고 2차 사이클을 연다.
+if(cycleNumber===1 && archives.length===0 && replay().ended) startNextCycle();
 render();
 
 /* 렌더 직후: 숫자 칸에 NaN이 남으면 기본값으로 복구하고 한 번만 다시 그린다 */
@@ -474,9 +510,7 @@ render();
   const bad=[...document.querySelectorAll('.cell .v,.ord .px')].some(el=>/NaN|undefined/.test(el.textContent));
   if(bad){
     console.warn('NaN 감지 — 설정을 기본값으로 되돌립니다');
-    cfg={...DEF}; closes=HIST.slice();
-    try{localStorage.removeItem(KEY);}catch(e){}
-    render();
+    document.getElementById('cycleStatus').textContent='표시 오류: 저장된 사이클 이력은 유지됩니다. 새로고침 후 확인해주세요.';
   }
 })();
 </script>

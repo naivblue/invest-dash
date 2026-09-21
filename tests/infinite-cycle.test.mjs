@@ -4,13 +4,13 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const script=readFileSync(new URL('../infinite-buying/index.html',import.meta.url),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-function app(){
+function app(storage=new Map()){
   const elements=new Map();
   const document={getElementById(id){if(!elements.has(id)) elements.set(id,{value:'',style:{},innerHTML:'',textContent:''}); return elements.get(id);},querySelectorAll(){return [];}};
-  const context=vm.createContext({document,window:{},localStorage:{getItem(){return null;},setItem(){}},console,confirm:()=>true,alert:()=>{},navigator:{},setTimeout});
+  const context=vm.createContext({document,window:{},localStorage:{getItem(key){return storage.get(key)||null;},setItem(key,value){storage.set(key,value);}},console,confirm:()=>true,alert:()=>{},navigator:{},setTimeout});
   vm.runInContext(script,context);
   for(const id of ['inBuy','anSh','anAvg']) document.getElementById(id);
-  return {elements,run:code=>vm.runInContext(code,context)};
+  return {elements,storage,run:code=>vm.runInContext(code,context)};
 }
 test('account anchor above target requests confirmation, not a fictitious sale',()=>{
   const a=app();
@@ -44,4 +44,46 @@ test('confirmed cycle only restarts with explicit filled buys',()=>{
   a.run("anchor={d:'2026-09-21',avg:0,sh:0}; closes.push(['2026-09-21',79.08,0],['2026-09-22',80,2]); render();");
   assert.equal(a.run('replay().sh'),2);
   assert.equal(a.run('replay().ended'),false);
+});
+test('legacy closed history migrates once, survives reload, and isolates second cycle',()=>{
+  const a=app();
+  a.run("anchor={d:'2026-09-21',avg:0,sh:0}; closes.push(['2026-09-21',79.08,0]); render();");
+  const b=app(a.storage);
+  assert.equal(b.run('cycleNumber'),2);
+  assert.equal(b.run('archives.length'),1);
+  assert.equal(b.run('closes.length'),0);
+  assert.equal(b.run('anchor'),null);
+  assert.match(b.elements.get('cycleArchives').innerHTML,/1차 사이클 · 종료/);
+  const archived=b.run('JSON.stringify(archives[0])');
+  const c=app(b.storage);
+  assert.equal(c.run('cycleNumber'),2);
+  assert.equal(c.run('closes.length'),0);
+  assert.equal(c.run('archives.length'),1);
+  assert.equal(c.run('startNextCycle()'),false);
+  c.run("closes.push(['2026-09-22',79,2]); render();");
+  assert.equal(c.run('replay().sh'),2);
+  assert.equal(c.run('replay().inv'),158);
+  assert.equal(c.run('JSON.stringify(archives[0])'),archived);
+  const d=app(c.storage);
+  assert.equal(d.run('replay().sh'),2);
+  assert.equal(d.run('closes.length'),1);
+  assert.ok(d.storage.has('tqqq-v2-state-v4-before-cycle-1'));
+});
+test('next-cycle action preserves history and does not invent first purchases',()=>{
+  const a=app();
+  a.run("anchor={d:'2026-09-21',avg:0,sh:0}; closes.push(['2026-09-21',79.08,0]); render();");
+  a.elements.get('newCycle').onclick();
+  assert.equal(a.run('cycleNumber'),2);
+  assert.equal(a.run('archives[0].state.sh'),0);
+  a.run("closes.push(['2026-09-22',79,0],['2026-09-23',78]); render();");
+  assert.equal(a.run('replay().sh'),0);
+});
+test('storage failure leaves the completed cycle and its history intact',()=>{
+  const a=app();
+  a.run("anchor={d:'2026-09-21',avg:0,sh:0}; closes.push(['2026-09-21',79.08,0]); render();");
+  const original=a.run('JSON.stringify({closes,anchor})');
+  a.run("localStorage.setItem=()=>{throw Error('quota');}");
+  assert.equal(a.run('startNextCycle()'),false);
+  assert.equal(a.run('cycleNumber'),1);
+  assert.equal(a.run('JSON.stringify({closes,anchor})'),original);
 });
