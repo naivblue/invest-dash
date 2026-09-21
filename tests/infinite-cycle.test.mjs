@@ -91,10 +91,10 @@ test('cycle buttons switch between archived and current histories without overwr
   const a=app();
   a.run("anchor={d:'2026-09-21',avg:0,sh:0}; closes.push(['2026-09-21',79.08,0]); startNextCycle(); closes.push(['2026-09-22',80,2]); render();");
   const before=a.storage.get('tqqq-v2-state-v4');
-  assert.match(a.elements.get('cycleTabs').innerHTML,/1회차 · 완료/);
+  assert.match(a.elements.get('cycleTabs').innerHTML,/1회차 종료/);
   assert.match(a.elements.get('cycleTabs').innerHTML,/2회차/);
   a.elements.get('cycleTab1').onclick();
-  assert.equal(a.elements.get('cycleTitle').textContent,'1회차 · 완료');
+  assert.equal(a.elements.get('cycleTitle').textContent,'1회차 종료');
   assert.match(a.elements.get('log').innerHTML,/2026-08-17/);
   assert.equal(a.elements.get('apply').disabled,true);
   assert.equal(a.storage.get('tqqq-v2-state-v4'),before);
@@ -135,4 +135,23 @@ test('creation is enabled even for an empty active cycle',()=>{
   a.elements.get('newCycle').onclick();
   assert.equal(a.run('cycleNumber'),3);
   assert.equal(a.run('closes.length'),0);
+});
+test('user-confirmed first-cycle sale corrects archived holdings without changing second-cycle trades',()=>{
+  const a=app();
+  a.run("closes.push(['2026-09-22',79.08]); anchor={d:'2026-09-22',avg:71.0204,sh:37}; startNextCycle(); closes.push(['2026-09-23',80,2]); render();");
+  assert.equal(a.run('archives[0].state.sh'),37);
+  const b=app(a.storage);
+  assert.equal(b.run('archives[0].state.sh'),0);
+  assert.equal(b.run('archives[0].state.confirmed'),true);
+  assert.equal(b.run('archives[0].saleConfirmedByUser'),true);
+  assert.equal(b.run('replay().sh'),2);
+  assert.equal(b.run('closes[0][0]'),'2026-09-23');
+  b.elements.get('cycleTab1').onclick();
+  assert.match(b.elements.get('cycleTitle').textContent,/1회차 종료/);
+  assert.equal(b.run('archives[0].end'),'2026-09-22');
+  assert.equal(b.run('archives[0].closes.at(-1)[1]'),79.08);
+  assert.match(b.elements.get('log').innerHTML,/전량 매도 확인/);
+  const c=app(b.storage);
+  assert.equal(c.run('archives[0].state.sh'),0);
+  assert.equal(c.run('replay().sh'),2);
 });
