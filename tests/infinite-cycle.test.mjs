@@ -204,3 +204,44 @@ test('an earlier correction that wiped the account anchor is redone from the bac
   assert.match(b.elements.get('strip').innerHTML,/\$71\.0204/);
   assert.match(b.elements.get('strip').innerHTML,/\+11\.35/);
 });
+test('a second cycle shows the same summary while running and when completed',()=>{
+  const a=app(new Map(),true);          // 1회차 정정이 돌아 2회차가 열린 상태
+  // 2회차 시작: 첫 매수 2주, 추가 매수, 계좌 평단 반영
+  a.run("closes.push(['2026-09-23',80,2],['2026-09-24',78,2]); anchor={d:'2026-09-24',avg:78.9500,sh:4}; render();");
+  assert.equal(a.run('cycleNumber'),2);
+  const live=a.elements.get('strip').innerHTML;
+  assert.match(live,/평단<\/p>/);                       // 진행 중에는 '매도 전' 꼬리표가 없다
+  assert.match(live,/\$78\.9500/);
+  assert.match(live,/보유<\/p>/);
+  assert.match(live,/평가손익/);
+  assert.doesNotMatch(live,/최종 수익률/);
+
+  // 전량 매도 완료 버튼 — 평단을 지우지 않고 매도 주수를 기록한다
+  a.elements.get('inDate').value='2026-09-25';
+  a.elements.get('inPx').value='86.85';
+  a.elements.get('closeCycle').onclick();
+  assert.equal(a.run('replay().sh'),0);
+  assert.equal(a.run('replay().confirmed'),true);
+  assert.equal(a.run('anchor.avg'),78.95);              // 계좌 평단이 살아 있다
+  const done=a.elements.get('strip').innerHTML;
+  assert.match(done,/평단 <small>매도 전<\/small>/);
+  assert.match(done,/\$78\.9500/);
+  assert.match(done,/매도 <small>전량<\/small>/);
+  assert.match(done,/4<small>주<\/small>/);
+  assert.match(done,/최종 수익률/);
+  assert.match(done,/\+10\.01/);                       // 86.85 / 78.95 - 1
+  assert.doesNotMatch(done,/\$0\.0000/);
+  assert.equal(a.elements.get('cycleTitle').textContent,'2회차 · 완료');
+
+  // 3회차를 열면 2회차도 1회차와 같은 형식으로 보관된다
+  a.elements.get('newCycle').onclick();
+  assert.equal(a.run('cycleNumber'),3);
+  const arch=a.elements.get('cycleArchives').innerHTML;
+  assert.match(arch,/2차 사이클 · 완료/);
+  assert.match(arch,/매도 전 4주 · 평단 \$78\.9500/);
+  assert.match(arch,/최종 수익률[\s\S]*\+10\.01%/);
+  assert.match(a.elements.get('cycleTabs').innerHTML,/2회차 · 완료/);
+  a.elements.get('cycleTab2').onclick();
+  assert.match(a.elements.get('cycleStatus').innerHTML,/최종 수익률[\s\S]*\+10\.01%/);
+  assert.match(a.elements.get('log').innerHTML,/\+10\.01%/);
+});

@@ -502,7 +502,7 @@ function renderCurrent(){
 function startNextCycle(){
   if(viewingArchive!==null) return false;
   const state=replay();
-  const snapshot=JSON.parse(JSON.stringify({number:cycleNumber,cfg,closes,anchor,state,saleConfirmedByUser:cycleNumber===1&&state.confirmed,start:closes[0]?.[0]||'미입력',end:closes.at(-1)?.[0]||'미입력'}));
+  const snapshot=JSON.parse(JSON.stringify({number:cycleNumber,cfg,closes,anchor,state,saleConfirmedByUser:state.confirmed,start:closes[0]?.[0]||'미입력',end:closes.at(-1)?.[0]||'미입력'}));
   const nextReference=closes.length?{d:snapshot.end,px:state.last}:referenceClose;
   // 이전 상태를 별도 백업한 다음 저장에 성공한 경우에만 새 사이클로 이동한다.
   try{
@@ -538,8 +538,11 @@ document.getElementById('closeCycle').onclick=()=>{
   const px=parseFloat(document.getElementById('inPx').value);
   if(!d||!(px>0)){ alert('실제 매도한 미국 거래일과 종가를 입력해주세요.'); return; }
   if(!confirm(d+' 전량 매도 완료로 기록할까요? 보유주수는 0주가 됩니다.')) return;
-  closes=closes.filter(c=>c[0]!==d); closes.push([d,px,0,0]); closes.sort((a,b)=>a[0].localeCompare(b[0]));
-  anchor={d,avg:0,sh:0};
+  const sh=replay().sh;                       // 매도 직전 보유 — 이 주수를 그대로 매도로 기록한다
+  closes=closes.filter(c=>c[0]!==d); closes.push([d,px,0,sh]); closes.sort((a,b)=>a[0].localeCompare(b[0]));
+  /* 계좌 기준점은 매도 전 평단의 근거다 — 지우면 최종 수익률이 종가 추정으로 어긋난다.
+     매도일 이후 기준점만 매도와 충돌하므로 그때만 옮긴다. */
+  if(!sh || (anchor && anchor.d>=d)) anchor={d,avg:0,sh:0};
   ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
 };
 document.getElementById('copy').onclick=async e=>{
