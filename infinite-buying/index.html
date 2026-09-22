@@ -359,6 +359,10 @@ function finalRet(state){
   return {sh:c.sh, inv:c.inv, avg, pl, pct:c.inv?pl/c.inv*100:0, px:state.last};
 }
 function pct(v){ return `<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${v.toFixed(2)}%</span>`; }
+function executionAverages(a){
+  return Number.isFinite(a.buyAverageUsd)&&Number.isFinite(a.sellAverageUsd)
+    ? `매입평균 $${a.buyAverageUsd.toFixed(4)} · 매도평균 $${a.sellAverageUsd.toFixed(2)}` : '';
+}
 
 function render(){
   const activeNumber=cycleNumber;
@@ -383,6 +387,7 @@ function render(){
     document.getElementById('ordWhen').textContent=archive.start+' ~ '+archive.end+' · 보관된 회차 조회';
     const f=finalRet(archive.state);
     document.getElementById('cycleStatus').innerHTML='<b>'+archive.number+'회차 · 보관된 체결이력</b>'
+      +(executionAverages(archive)?'<br><b>'+executionAverages(archive)+'</b> (계좌 확인)':'')
       +(f?`<br>매도 전 ${f.sh}주 · 평단 $${f.avg.toFixed(4)} → ${archive.end} 종가 $${f2(f.px)} · <b>최종 수익률 ${pct(f.pct)}</b> (${f.pl>=0?'+':''}${won(f.pl*(archive.cfg&&archive.cfg.fx||cfg.fx))}원, 종가기준)`:'')
       +(Number.isFinite(archive.realizedReturnPct)&&Number.isFinite(archive.realizedProfitUsd)?`<br><b>실현 수익률 ${pct(archive.realizedReturnPct)} · 실현손익 ${archive.realizedProfitUsd>=0?'+':''}$${archive.realizedProfitUsd.toFixed(2)}</b> (계좌 확인)`:'')
       +'<br>새 거래를 입력하려면 상단의 '+activeNumber+'회차 버튼을 누르세요.';
@@ -414,7 +419,8 @@ function renderCurrent(){
 
   document.getElementById('strip').innerHTML=[
     ['회차'+(closing?' <small>매도 전</small>':''), rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
-    ['평단'+(closing?' <small>매도 전</small>':''), '$'+avg.toFixed(4)],
+    [hasRealized&&Number.isFinite(realized.buyAverageUsd)?'매입평균 <small>계좌 확인</small>':'평단'+(closing?' <small>매도 전</small>':''), '$'+(hasRealized&&Number.isFinite(realized.buyAverageUsd)?realized.buyAverageUsd:avg).toFixed(4)],
+    ...(hasRealized&&Number.isFinite(realized.sellAverageUsd)?[['매도평균 <small>계좌 확인</small>', '$'+realized.sellAverageUsd.toFixed(2)]]:[]),
     /* 실시간 시세가 아니라 마지막 종가다 — 정적 페이지는 시세를 못 가져온다(CSP) */
     [(closing?'매도일 종가':'종가')+' <small>'+(lastD?lastD.slice(5):'')+'</small>', '$'+f2(st.last)],
     [closing?'매도 <small>전량</small>':'보유', (closing?closing.sh:st.sh)+'<small>주</small>'],
@@ -564,7 +570,7 @@ document.getElementById('reset').onclick=()=>{ if(cycleNumber>1) return; closes=
 
 /* 사용자 확인: 1회차는 2026-09-22 전량 매도 완료.
    계좌에서 확인한 실현 수익률/손익은 종가 기준 추정치와 구분해 보관한다. */
-const FIRST_SALE={d:'2026-09-22', px:79.08}, FIRST_REALIZED={returnPct:9.82,profitUsd:258.30}, SALE_FLAG=KEY+'-first-sale-v4-realized', SALE_BACKUP=KEY+'-before-first-sale-correction';
+const FIRST_SALE={d:'2026-09-22', px:79.08}, FIRST_REALIZED={returnPct:9.82,profitUsd:258.30,buyAverageUsd:71.0203,sellAverageUsd:78.12}, SALE_FLAG=KEY+'-first-sale-v4-realized', SALE_BACKUP=KEY+'-before-first-sale-correction';
 function reflectFirstCycleSale(){
   try{ if(localStorage.getItem(SALE_FLAG)) return; }catch(e){ return; }
   const first=archives.find(a=>a.number===1);
@@ -604,7 +610,7 @@ reflectFirstCycleSale();
 // 기존 브라우저에서 종료된 첫 사이클은 한 번만 보관하고 2차 사이클을 연다.
 if(cycleNumber===1 && archives.length===0 && replay().ended) startNextCycle();
 const firstArchive=archives.find(a=>a.number===1);
-if(firstArchive){ firstArchive.realizedReturnPct=FIRST_REALIZED.returnPct; firstArchive.realizedProfitUsd=FIRST_REALIZED.profitUsd; }
+if(firstArchive){ firstArchive.realizedReturnPct=FIRST_REALIZED.returnPct; firstArchive.realizedProfitUsd=FIRST_REALIZED.profitUsd; firstArchive.buyAverageUsd=FIRST_REALIZED.buyAverageUsd; firstArchive.sellAverageUsd=FIRST_REALIZED.sellAverageUsd; }
 render();
 
 /* 렌더 직후: 숫자 칸에 NaN이 남으면 기본값으로 복구하고 한 번만 다시 그린다 */

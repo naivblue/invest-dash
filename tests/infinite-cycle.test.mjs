@@ -179,8 +179,11 @@ test('a completed cycle shows its closing state and final return, not zeros',()=
   const a=app(new Map(),true);
   a.elements.get('cycleTab1').onclick();
   const strip=a.elements.get('strip').innerHTML;
-  assert.match(strip,/평단 <small>매도 전<\/small>/);
-  assert.match(strip,/\$71\.0204/);            // 계좌 확인 평단이 매도로 지워지지 않는다
+  assert.match(strip,/매입평균 <small>계좌 확인<\/small>/);
+  assert.match(strip,/\$71\.0203/);
+  assert.match(strip,/매도평균 <small>계좌 확인<\/small>/);
+  assert.match(strip,/\$78\.12/);
+  assert.match(strip,/\$79\.08/); // 매도일 종가는 체결 평균과 별도 보존
   assert.match(strip,/실현 수익률/);
   assert.match(strip,/\+9\.82/);
   assert.match(strip,/\$258\.30/);
@@ -195,6 +198,11 @@ test('a completed cycle shows its closing state and final return, not zeros',()=
   assert.match(a.elements.get('cycleArchives').innerHTML,/실현손익[\s\S]*\$258\.30/);
   assert.equal(a.run('archives.find(x=>x.number===1).realizedReturnPct'),9.82);
   assert.equal(a.run('archives.find(x=>x.number===1).realizedProfitUsd'),258.30);
+  const b=app(a.storage);
+  assert.equal(b.run('archives[0].buyAverageUsd'),71.0203);
+  assert.equal(b.run('archives[0].sellAverageUsd'),78.12);
+  b.elements.get('cycleTab1').onclick();
+  assert.match(b.elements.get('cycleStatus').innerHTML,/매입평균 \$71\.0203 · 매도평균 \$78\.12/);
 });
 test('an earlier correction that wiped the account anchor is redone from the backup',()=>{
   const a=app();
@@ -210,7 +218,7 @@ test('an earlier correction that wiped the account anchor is redone from the bac
   assert.equal(b.run('archives[0].state.sh'),0);
   assert.equal(b.run('archives[0].state.confirmed'),true);
   b.elements.get('cycleTab1').onclick();
-  assert.match(b.elements.get('strip').innerHTML,/\$71\.0204/);
+  assert.match(b.elements.get('strip').innerHTML,/\$71\.0203/);
   assert.match(b.elements.get('strip').innerHTML,/\+9\.82/);
 });
 test('a second cycle shows the same summary while running and when completed',()=>{
