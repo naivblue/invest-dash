@@ -441,7 +441,7 @@ function renderCurrent(){
 
   document.getElementById('strip').innerHTML=[
     ['매수 회차'+(closing?' <small>매도 전</small>':''), rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
-    ['경과일 <small>주말 포함 · 시작일 0일</small>', elapsedDays(st)],
+    ['경과일', elapsedDays(st)],
     [hasRealized&&Number.isFinite(realized.buyAverageUsd)?'매입평균 <small>계좌 확인</small>':'평단'+(closing?' <small>매도 전</small>':''), '$'+(hasRealized&&Number.isFinite(realized.buyAverageUsd)?realized.buyAverageUsd:avg).toFixed(4)],
     ...(hasRealized&&Number.isFinite(realized.sellAverageUsd)?[['매도평균 <small>계좌 확인</small>', '$'+realized.sellAverageUsd.toFixed(2)]]:[]),
     /* 실시간 시세가 아니라 마지막 종가다 — 정적 페이지는 시세를 못 가져온다(CSP) */
