@@ -352,6 +352,16 @@ function nextBizDay(iso){
   return dt.toISOString().slice(0,10);
 }
 
+// 주말을 포함한 달력 날짜 차이. 시작 당일은 0일, 종료된 회차는 종료일에 고정한다.
+function elapsedDays(state, today=new Date(Date.now()+9*3600000).toISOString().slice(0,10)){
+  const start=cfg.startDate||closes[0]?.[0];
+  const finished=state.ended?state.rows.find(r=>r.sh===0&&r.hit.some(h=>/매도|사이클 완료/.test(h)))?.d:null;
+  const end=finished||(viewingArchive!==null?closes.at(-1)?.[0]:today);
+  if(!start||!end) return '–';
+  const days=Math.round((Date.parse(end+'T00:00:00Z')-Date.parse(start+'T00:00:00Z'))/86400000);
+  return !Number.isFinite(days)?'–':days<0?'시작 전':days+'<small>일</small>';
+}
+
 /* 그 행 시점의 평가수익률 — 스트립 '수익률'과 같은 정의(종가 대비 평단) */
 /* sold = 전량 매도 행의 직전 보유 상태. 보유가 0이라 '–' 로만 보이던 자리를 실현 수익률로 채운다 */
 function ret(r,sold){
@@ -430,7 +440,8 @@ function renderCurrent(){
     : waiting ? '<b>새 사이클 · 첫 매수 대기</b><br>이전 사이클의 거래는 아래 종료 이력에 보관했습니다. 실제 첫 매수 후 거래일·가격·매수 체결 주수를 입력하세요. 아직 매수한 것으로 기록하지 않습니다.' : targetReached ? '<b>+10% 익절 목표 도달 · 매도 확인 필요</b><br>입력한 계좌 보유주수가 남아 있어 종료로 확정하지 않았습니다. 실제로 전부 팔렸다면 거래일·종가를 확인하고 [전량 매도 완료]를 누르세요.' : '';
 
   document.getElementById('strip').innerHTML=[
-    ['회차'+(closing?' <small>매도 전</small>':''), rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
+    ['매수 회차'+(closing?' <small>매도 전</small>':''), rnd.toFixed(1)+'<small> /'+cfg.T+'</small>'],
+    ['경과일 <small>주말 포함 · 시작일 0일</small>', elapsedDays(st)],
     [hasRealized&&Number.isFinite(realized.buyAverageUsd)?'매입평균 <small>계좌 확인</small>':'평단'+(closing?' <small>매도 전</small>':''), '$'+(hasRealized&&Number.isFinite(realized.buyAverageUsd)?realized.buyAverageUsd:avg).toFixed(4)],
     ...(hasRealized&&Number.isFinite(realized.sellAverageUsd)?[['매도평균 <small>계좌 확인</small>', '$'+realized.sellAverageUsd.toFixed(2)]]:[]),
     /* 실시간 시세가 아니라 마지막 종가다 — 정적 페이지는 시세를 못 가져온다(CSP) */
