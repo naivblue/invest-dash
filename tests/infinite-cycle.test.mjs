@@ -4,11 +4,13 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const script=readFileSync(new URL('../infinite-buying/index.html',import.meta.url),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-const SALE_FLAG='tqqq-v2-state-v4-first-sale-v3';
+const SALE_FLAG='tqqq-v2-state-v4-first-sale-v4-realized';
+const PREVIOUS_SALE_FLAG='tqqq-v2-state-v4-first-sale-v3';
 /* 기본값은 1회차 매도 정정을 이미 끝낸 기기 — 사이클 기본 동작을 그대로 검증한다.
    correct=true 면 정정 전 기기처럼 열어 마이그레이션 자체를 검증한다. */
 function app(storage=new Map(),correct=false){
-  if(!correct) storage.set(SALE_FLAG,'1'); else storage.delete(SALE_FLAG);
+  if(!correct){storage.set(SALE_FLAG,'1'); storage.set(PREVIOUS_SALE_FLAG,'1');}
+  else {storage.delete(SALE_FLAG); storage.delete(PREVIOUS_SALE_FLAG);}
   const elements=new Map();
   const document={getElementById(id){if(!elements.has(id)) elements.set(id,{value:'',style:{},innerHTML:'',textContent:''}); return elements.get(id);},querySelectorAll(){return [];}};
   const context=vm.createContext({document,window:{},localStorage:{getItem(key){return storage.get(key)||null;},setItem(key,value){storage.set(key,value);}},console,confirm:()=>true,alert:()=>{},navigator:{},setTimeout});
@@ -179,13 +181,20 @@ test('a completed cycle shows its closing state and final return, not zeros',()=
   const strip=a.elements.get('strip').innerHTML;
   assert.match(strip,/평단 <small>매도 전<\/small>/);
   assert.match(strip,/\$71\.0204/);            // 계좌 확인 평단이 매도로 지워지지 않는다
-  assert.match(strip,/최종 수익률/);
-  assert.match(strip,/\+11\.35/);              // 79.08 / 71.0204 - 1
+  assert.match(strip,/실현 수익률/);
+  assert.match(strip,/\+9\.82/);
+  assert.match(strip,/\$258\.30/);
   assert.doesNotMatch(strip,/\$0\.0000/);
   assert.match(a.elements.get('cycleStatus').innerHTML,/최종 수익률[\s\S]*\+11\.35%/);
+  assert.match(a.elements.get('cycleStatus').innerHTML,/실현 수익률[\s\S]*\+9\.82%/);
+  assert.match(a.elements.get('cycleStatus').innerHTML,/실현손익[\s\S]*\$258\.30/);
   assert.match(a.elements.get('log').innerHTML,/계좌 확인 37주/);
   a.elements.get('cycleTab2').onclick();
   assert.match(a.elements.get('cycleArchives').innerHTML,/최종 수익률[\s\S]*\+11\.35%/);
+  assert.match(a.elements.get('cycleArchives').innerHTML,/실현 수익률[\s\S]*\+9\.82%/);
+  assert.match(a.elements.get('cycleArchives').innerHTML,/실현손익[\s\S]*\$258\.30/);
+  assert.equal(a.run('archives.find(x=>x.number===1).realizedReturnPct'),9.82);
+  assert.equal(a.run('archives.find(x=>x.number===1).realizedProfitUsd'),258.30);
 });
 test('an earlier correction that wiped the account anchor is redone from the backup',()=>{
   const a=app();
@@ -202,7 +211,7 @@ test('an earlier correction that wiped the account anchor is redone from the bac
   assert.equal(b.run('archives[0].state.confirmed'),true);
   b.elements.get('cycleTab1').onclick();
   assert.match(b.elements.get('strip').innerHTML,/\$71\.0204/);
-  assert.match(b.elements.get('strip').innerHTML,/\+11\.35/);
+  assert.match(b.elements.get('strip').innerHTML,/\+9\.82/);
 });
 test('a second cycle shows the same summary while running and when completed',()=>{
   const a=app(new Map(),true);          // 1회차 정정이 돌아 2회차가 열린 상태

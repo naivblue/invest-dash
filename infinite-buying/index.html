@@ -384,6 +384,7 @@ function render(){
     const f=finalRet(archive.state);
     document.getElementById('cycleStatus').innerHTML='<b>'+archive.number+'회차 · 보관된 체결이력</b>'
       +(f?`<br>매도 전 ${f.sh}주 · 평단 $${f.avg.toFixed(4)} → ${archive.end} 종가 $${f2(f.px)} · <b>최종 수익률 ${pct(f.pct)}</b> (${f.pl>=0?'+':''}${won(f.pl*(archive.cfg&&archive.cfg.fx||cfg.fx))}원, 종가기준)`:'')
+      +(Number.isFinite(archive.realizedReturnPct)&&Number.isFinite(archive.realizedProfitUsd)?`<br><b>실현 수익률 ${pct(archive.realizedReturnPct)} · 실현손익 ${archive.realizedProfitUsd>=0?'+':''}$${archive.realizedProfitUsd.toFixed(2)}</b> (계좌 확인)`:'')
       +'<br>새 거래를 입력하려면 상단의 '+activeNumber+'회차 버튼을 누르세요.';
   }
 }
@@ -395,8 +396,10 @@ function renderCurrent(){
   document.getElementById('newCycle').textContent=(cycleNumber+1)+'회차 새로 만들기';
   document.getElementById('newCycle').disabled=false;
   document.getElementById('reset').disabled=cycleNumber>1;
-  document.getElementById('cycleArchives').innerHTML=archives.map(a=>`<details><summary>${a.number}차 사이클 · 완료 · ${a.start} ~ ${a.end}</summary><p class="h2sub">${(f=>f?`매도 전 ${f.sh}주 · 평단 $${f.avg.toFixed(4)} → 종가 $${f2(f.px)} · 최종 수익률 ${pct(f.pct)} (${f.pl>=0?'+':''}${won(f.pl*(a.cfg&&a.cfg.fx||cfg.fx))}원)`:`완료 시 보유 ${a.state.sh}주`)(finalRet(a.state))} · ${a.state.confirmed?'전량 매도 확인':'종가 기준 매도 추정'} · 종가 기준이라 실현손익은 계좌 확인 필요</p><div class="scroll"><table><thead><tr><th>날짜</th><th>종가</th><th>매수 회차</th><th>체결</th><th>보유</th></tr></thead><tbody>${a.state.rows.filter(r=>r.hit.length&&!r.nofill).slice().reverse().map(r=>`<tr><td>${r.d}</td><td>$${f2(r.px)}</td><td>${r.rnd.toFixed(1)}</td><td>${r.hit.join(' + ')}</td><td>${r.sh}주</td></tr>`).join('')}</tbody></table></div></details>`).join('');
+  document.getElementById('cycleArchives').innerHTML=archives.map(a=>`<details><summary>${a.number}차 사이클 · 완료 · ${a.start} ~ ${a.end}</summary><p class="h2sub">${(f=>f?`매도 전 ${f.sh}주 · 평단 $${f.avg.toFixed(4)} → 종가 $${f2(f.px)} · 최종 수익률 ${pct(f.pct)} (${f.pl>=0?'+':''}${won(f.pl*(a.cfg&&a.cfg.fx||cfg.fx))}원, 종가 기준 추정)`:`완료 시 보유 ${a.state.sh}주`)(finalRet(a.state))}${Number.isFinite(a.realizedReturnPct)&&Number.isFinite(a.realizedProfitUsd)?` · <b>실현 수익률 ${pct(a.realizedReturnPct)} · 실현손익 ${a.realizedProfitUsd>=0?'+':''}$${a.realizedProfitUsd.toFixed(2)}</b> (계좌 확인)`:''} · ${a.state.confirmed?'전량 매도 확인':'종가 기준 매도 추정'}</p><div class="scroll"><table><thead><tr><th>날짜</th><th>종가</th><th>매수 회차</th><th>체결</th><th>보유</th></tr></thead><tbody>${a.state.rows.filter(r=>r.hit.length&&!r.nofill).slice().reverse().map(r=>`<tr><td>${r.d}</td><td>$${f2(r.px)}</td><td>${r.rnd.toFixed(1)}</td><td>${r.hit.join(' + ')}</td><td>${r.sh}주</td></tr>`).join('')}</tbody></table></div></details>`).join('');
   const closing=closingOf(st), base=closing||{sh:st.sh,inv:st.inv};
+  const realized=cycleNumber===1?archives.find(a=>a.number===1):null;
+  const hasRealized=realized&&Number.isFinite(realized.realizedReturnPct)&&Number.isFinite(realized.realizedProfitUsd);
   const avg=base.sh?base.inv/base.sh:0, rnd=base.sh/cfg.Q, half=rnd>=20, done=rnd>=cfg.T;
   const val=base.sh*st.last, pl=val-base.inv;
   const wd=['일','월','화','수','목','금','토'];
@@ -404,8 +407,9 @@ function renderCurrent(){
   const targetReached=st.sh>0 && st.last>=Number((avg*1.10).toFixed(2));
   document.getElementById('cycleStatus').innerHTML=st.ended
     ? `<b>사이클 완료${st.confirmed?' · 전량 매도 확인':' (추정)'}</b>`
-      +(closing?`<br>매도 전 ${closing.sh}주 · 평단 $${avg.toFixed(4)} → ${lastD} 종가 $${f2(st.last)} · <b>최종 수익률 ${pct(pl/base.inv*100)} (${pl>=0?'+':''}${won(pl*cfg.fx)}원)</b>`:'')
-      +`<br>종가 기준입니다. 실제 매도 체결가와 실현손익은 증권계좌에서 확인하세요. [다음 사이클 만들기]를 누르면 이력을 보관하고 빈 사이클을 엽니다.`
+      +(closing?`<br>매도 전 ${closing.sh}주 · 평단 $${avg.toFixed(4)} → ${lastD} 종가 $${f2(st.last)} · <b>종가 기준 추정 수익률 ${pct(pl/base.inv*100)} (${pl>=0?'+':''}${won(pl*cfg.fx)}원)</b>`:'')
+      +(hasRealized?`<br><b>계좌 기준 실현 수익률 ${pct(realized.realizedReturnPct)} · 실현손익 ${realized.realizedProfitUsd>=0?'+':''}$${realized.realizedProfitUsd.toFixed(2)}</b>`:'<br>종가 기준 추정입니다. 실제 매도 체결가와 실현손익은 증권계좌에서 확인하세요.')
+      +` [다음 사이클 만들기]를 누르면 이력을 보관하고 빈 사이클을 엽니다.`
     : waiting ? '<b>새 사이클 · 첫 매수 대기</b><br>이전 사이클의 거래는 아래 종료 이력에 보관했습니다. 실제 첫 매수 후 거래일·가격·매수 체결 주수를 입력하세요. 아직 매수한 것으로 기록하지 않습니다.' : targetReached ? '<b>+10% 익절 목표 도달 · 매도 확인 필요</b><br>입력한 계좌 보유주수가 남아 있어 종료로 확정하지 않았습니다. 실제로 전부 팔렸다면 거래일·종가를 확인하고 [전량 매도 완료]를 누르세요.' : '';
 
   document.getElementById('strip').innerHTML=[
@@ -414,9 +418,9 @@ function renderCurrent(){
     /* 실시간 시세가 아니라 마지막 종가다 — 정적 페이지는 시세를 못 가져온다(CSP) */
     [(closing?'매도일 종가':'종가')+' <small>'+(lastD?lastD.slice(5):'')+'</small>', '$'+f2(st.last)],
     [closing?'매도 <small>전량</small>':'보유', (closing?closing.sh:st.sh)+'<small>주</small>'],
-    [(closing?'실현손익':'평가손익')+' <small>종가</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+won(pl*cfg.fx)+'<small>원</small></span>'],
+    [(hasRealized?'실현손익 <small>계좌 확인</small>':(closing?'종가 손익 추정':'평가손익')) , '<span class="'+((hasRealized?realized.realizedProfitUsd:pl)>=0?'pos':'neg')+'">'+((hasRealized?realized.realizedProfitUsd:pl)>=0?'+':'')+(hasRealized?'$'+realized.realizedProfitUsd.toFixed(2):won(pl*cfg.fx)+'<small>원</small>')+'</span>'],
     /* 수익률은 투입금 대비 — 익절선(+10%)과 같은 잣대라 이게 실제 판단 기준이다 */
-    [(closing?'최종 수익률':'수익률')+' <small>투입대비</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(base.inv?pl/base.inv*100:0).toFixed(2)+'<small>%</small></span>'],
+    [(hasRealized?'실현 수익률':(closing?'최종 수익률':'수익률'))+' <small>'+(hasRealized?'계좌 확인':(closing?'종가 기준':'투입대비'))+'</small>', '<span class="'+((hasRealized?realized.realizedReturnPct:pl)>=0?'pos':'neg')+'">'+((hasRealized?realized.realizedReturnPct:pl)>=0?'+':'')+(hasRealized?realized.realizedReturnPct:(base.inv?pl/base.inv*100:0)).toFixed(2)+'<small>%</small></span>'],
     ['원금대비 <small>1천만</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(pl/P*100).toFixed(2)+'<small>%</small></span>']
   ].map(([k,v])=>`<div class="cell"><p class="k">${k}</p><p class="v">${v}</p></div>`).join('');
 
@@ -559,9 +563,8 @@ document.getElementById('reset').onclick=()=>{ if(cycleNumber>1) return; closes=
 });
 
 /* 사용자 확인: 1회차는 2026-09-22 전량 매도 완료.
-   기기마다 남아 있는 37주 기준점을 한 번만 정정한다 (플래그로 한 번만 실행).
-   실제 체결단가를 종가로 간주하거나 실현손익을 만들지 않는다. */
-const FIRST_SALE={d:'2026-09-22', px:79.08}, SALE_FLAG=KEY+'-first-sale-v3', SALE_BACKUP=KEY+'-before-first-sale-correction';
+   계좌에서 확인한 실현 수익률/손익은 종가 기준 추정치와 구분해 보관한다. */
+const FIRST_SALE={d:'2026-09-22', px:79.08}, FIRST_REALIZED={returnPct:9.82,profitUsd:258.30}, SALE_FLAG=KEY+'-first-sale-v4-realized', SALE_BACKUP=KEY+'-before-first-sale-correction';
 function reflectFirstCycleSale(){
   try{ if(localStorage.getItem(SALE_FLAG)) return; }catch(e){ return; }
   const first=archives.find(a=>a.number===1);
@@ -590,7 +593,7 @@ function reflectFirstCycleSale(){
     const saved={cfg,closes,anchor,cycleNumber};
     try{
       cfg=src.cfg||first.cfg; closes=src.closes.slice(); anchor=src.anchor; cycleNumber=1;
-      if(sellAll()){ first.cfg=cfg; first.closes=closes; first.anchor=anchor; first.state=replay(); first.start=closes[0][0]; first.end=FIRST_SALE.d; first.saleConfirmedByUser=true; }
+      if(sellAll()){ first.cfg=cfg; first.closes=closes; first.anchor=anchor; first.state=replay(); first.start=closes[0][0]; first.end=FIRST_SALE.d; first.saleConfirmedByUser=true; first.realizedReturnPct=FIRST_REALIZED.returnPct; first.realizedProfitUsd=FIRST_REALIZED.profitUsd; }
     }finally{ ({cfg,closes,anchor,cycleNumber}=saved); }
   }else{                                              // 1회차가 아직 진행 중 — 아래에서 보관되고 2회차가 열린다
     sellAll();
@@ -600,6 +603,8 @@ function reflectFirstCycleSale(){
 reflectFirstCycleSale();
 // 기존 브라우저에서 종료된 첫 사이클은 한 번만 보관하고 2차 사이클을 연다.
 if(cycleNumber===1 && archives.length===0 && replay().ended) startNextCycle();
+const firstArchive=archives.find(a=>a.number===1);
+if(firstArchive){ firstArchive.realizedReturnPct=FIRST_REALIZED.returnPct; firstArchive.realizedProfitUsd=FIRST_REALIZED.profitUsd; }
 render();
 
 /* 렌더 직후: 숫자 칸에 NaN이 남으면 기본값으로 복구하고 한 번만 다시 그린다 */
