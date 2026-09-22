@@ -12,12 +12,83 @@ function app(storage=new Map(),correct=false){
   if(!correct){storage.set(SALE_FLAG,'1'); storage.set(PREVIOUS_SALE_FLAG,'1');}
   else {storage.delete(SALE_FLAG); storage.delete(PREVIOUS_SALE_FLAG);}
   const elements=new Map();
-  const document={getElementById(id){if(!elements.has(id)) elements.set(id,{value:'',style:{},innerHTML:'',textContent:''}); return elements.get(id);},querySelectorAll(){return [];}};
+  const document={getElementById(id){if(!elements.has(id)) elements.set(id,{value:'',style:{},dataset:{},innerHTML:'',textContent:''}); return elements.get(id);},querySelectorAll(){return [];}};
   const context=vm.createContext({document,window:{},localStorage:{getItem(key){return storage.get(key)||null;},setItem(key,value){storage.set(key,value);}},console,confirm:()=>true,alert:()=>{},navigator:{},setTimeout});
   vm.runInContext(script,context);
   for(const id of ['inBuy','anSh','anAvg']) document.getElementById(id);
   return {elements,storage,run:code=>vm.runInContext(code,context)};
 }
+function setting(a,id,value){
+  const field=a.elements.get(id);
+  field.value=String(value);
+  field.onchange({target:field});
+}
+test('second-cycle sizing follows budget, FX, divisions and reference price without altering first-cycle history',()=>{
+  const a=app(new Map(),true);
+  const first=a.run('JSON.stringify(archives[0])');
+  setting(a,'cfgP',20000000);
+  setting(a,'cfgFx',1351.1);
+  setting(a,'cfgT',30);
+  assert.equal(a.run('cfg.sizingPrice'),79.08);
+  assert.equal(a.run('cfg.Q'),6);
+  assert.match(a.elements.get('sizingNote').textContent,/666,667원/);
+  assert.match(a.elements.get('orders').innerHTML,/첫 매수 6주/);
+  assert.equal(a.elements.get('pTotal').textContent,30);
+  assert.equal(a.elements.get('pHalfMark').dataset.l,'15 후반전');
+  setting(a,'cfgPrice',100);
+  assert.equal(a.run('cfg.Q'),4);
+  setting(a,'cfgFx',1000);
+  assert.equal(a.run('cfg.Q'),6);
+  setting(a,'cfgT',40);
+  assert.equal(a.run('cfg.Q'),5);
+  setting(a,'cfgT',30.5);
+  assert.equal(a.run('cfg.T'),40);
+  assert.equal(a.run('closes.length'),0);
+  assert.equal(a.run('JSON.stringify(archives[0])'),first);
+  const b=app(a.storage);
+  assert.equal(b.run('cfg.Q'),5);
+  assert.equal(b.run('cfg.sizingPrice'),100);
+});
+test('chosen cycle start persists, drives first trade date and never creates or removes fills',()=>{
+  const a=app(new Map(),true);
+  setting(a,'cfgStart','2026-09-28');
+  assert.equal(a.run('cfg.startDate'),'2026-09-28');
+  assert.equal(a.elements.get('inDate').value,'2026-09-28');
+  assert.equal(a.run('closes.length'),0);
+  for(const [id,value] of Object.entries({inDate:'2026-09-25',inPx:'78',inBuy:'6'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  assert.equal(a.run('closes.length'),0);
+  a.elements.get('inDate').value='2026-09-28';
+  a.elements.get('apply').onclick();
+  assert.equal(a.run('replay().sh'),6);
+  const before=a.run('JSON.stringify(closes)');
+  setting(a,'cfgStart','2026-09-29');
+  assert.equal(a.run('cfg.startDate'),'2026-09-28');
+  assert.equal(a.run('JSON.stringify(closes)'),before);
+  const b=app(a.storage);
+  assert.equal(b.run('cfg.startDate'),'2026-09-28');
+  assert.equal(b.run('replay().sh'),6);
+  b.elements.get('cycleTab1').onclick();
+  assert.equal(b.elements.get('cfgStart').disabled,true);
+  assert.equal(b.elements.get('reset').disabled,true);
+});
+test('auto-sizing handles zero and odd lots, and 30 divisions switch at 15',()=>{
+  const a=app(new Map(),true);
+  setting(a,'cfgFx',1000);
+  setting(a,'cfgT',30);
+  setting(a,'cfgPrice',100);
+  setting(a,'cfgP',21000000);
+  assert.equal(a.run('cfg.Q'),7);
+  assert.equal(a.run('guessBuy(100,100,7,1)'),7);
+  assert.equal(a.run('guessBuy(104,100,98,14)'),4);
+  assert.equal(a.run('guessBuy(104,100,105,15)'),0);
+  setting(a,'cfgP',1000);
+  assert.equal(a.run('cfg.Q'),0);
+  assert.match(a.elements.get('orders').innerHTML,/1회 예산으로 1주를 살 수 없습니다/);
+  assert.doesNotMatch(a.elements.get('strip').innerHTML,/NaN|Infinity/);
+  assert.equal(a.run('window.__slip'),'');
+  assert.equal(app(a.storage).run('cfg.Q'),0);
+});
 test('account anchor above target requests confirmation, not a fictitious sale',()=>{
   const a=app();
   a.run("closes.push(['2026-09-22',79.08]); anchor={d:'2026-09-22',avg:71.0204,sh:37}; render();");

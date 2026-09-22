@@ -147,17 +147,17 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
   <p class="sub">1회 매수 주수는 아래 설정을 따릅니다. 사이클별 체결이력과 입력값은 이 브라우저에만 저장됩니다.</p>
 </header>
 <div id="cycleTabs" class="row" aria-label="거래 회차 선택"></div>
-<div class="note"><b id="cycleTitle">1회차</b> · 각 회차는 최대 40분할 매수로 진행합니다.
+<div class="note"><b id="cycleTitle">1회차</b> · 설정한 분할 수에 따라 매수합니다.
   <button id="newCycle">다음 사이클 만들기</button>
 </div>
 
 <div class="strip" id="strip"></div>
 
 <div class="prog">
-  <div class="plab"><span>진행률 <b id="pRound">–</b> / 40회차</span><span id="pInv">–</span></div>
+  <div class="plab"><span>진행률 <b id="pRound">–</b> / <span id="pTotal">40</span>회차</span><span id="pInv">–</span></div>
   <div class="pbar"><div class="pfill" id="pFill"></div>
-    <div class="pmark" style="left:50%" data-l="20 후반전"></div>
-    <div class="pmark" style="left:100%" data-l="40 소진"></div>
+    <div id="pHalfMark" class="pmark" style="left:50%" data-l="20 후반전"></div>
+    <div id="pEndMark" class="pmark" style="left:100%" data-l="40 소진"></div>
   </div>
 </div>
 
@@ -191,10 +191,13 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 <div class="form">
   <div><label>원금 (원)</label><input type="number" id="cfgP" step="100000"></div>
   <div><label>환율 (원/$)</label><input type="number" id="cfgFx" step="0.1"></div>
-  <div><label>분할 수</label><input type="number" id="cfgT" step="1"></div>
-  <div><label>1회 매수 주수</label><input type="number" id="cfgQ" step="1" min="1"></div>
-  <div style="display:flex;align-items:end"><button id="reset">8/17부터 재계산</button></div>
+  <div><label>분할 수</label><input type="number" id="cfgT" step="1" min="1"></div>
+  <div><label>계산 기준 주가 ($)</label><input type="number" id="cfgPrice" step="0.01" min="0.01"></div>
+  <div><label>1회 매수 주수 (자동)</label><input type="number" id="cfgQ" step="1" min="0" readonly></div>
+  <div><label>계산 시작일</label><input type="date" id="cfgStart"></div>
+  <div style="display:flex;align-items:end"><button id="reset">선택일부터 계산</button></div>
 </div>
+<p class="h2sub" id="sizingNote" aria-live="polite"></p>
 
 <h2>체결 이력</h2>
 <div id="cycleArchives"></div>
@@ -206,16 +209,16 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 
 <h2>V2.0 규칙</h2>
 <div class="rules"><dl>
-  <div><dt>분할</dt><dd><b>40분할.</b> 1회 매수금액 = 원금 ÷ 40. 회차는 날짜가 아니라 <b>투입금액 ÷ 1회분</b>으로 센다 — LOC가 미체결이면 회차가 안 오른다.</dd></div>
-  <div><dt>전반전 · 회차 20 미만</dt><dd>1회분을 <b>반으로 쪼개 LOC 매수</b> — 절반은 <b>평단</b>, 절반은 <b>평단+5%</b>.<br>매도는 <b>전량을 평단+10% 지정가</b>.</dd></div>
-  <div><dt>후반전 · 회차 20 이상</dt><dd>1회분 <b>전체를 평단 LOC</b>로. <b>평단 위에서는 절대 매수 금지.</b><br>매도는 <b>평단+5%와 +10%로 반반 분할</b>.</dd></div>
+  <div><dt>분할</dt><dd>1회 예산 = <b>원금 ÷ 설정한 분할 수</b>. 1회 주수는 예산을 환율과 기준 주가로 나누고 소수점을 버려 계산합니다. 이 계산기의 진행 회차는 <b>보유주수 ÷ 1회 주수</b>로 표시합니다.</dd></div>
+  <div><dt>전반전 · 분할 수의 절반 미만</dt><dd>1회분을 <b>두 주문으로 나눠 LOC 매수</b> — 절반은 <b>평단</b>, 나머지는 <b>평단+5%</b>. 홀수 주수의 남는 1주는 두 번째 주문에 포함합니다.<br>매도는 <b>전량을 평단+10% 지정가</b>.</dd></div>
+  <div><dt>후반전 · 분할 수의 절반 이상</dt><dd>1회분 <b>전체를 평단 LOC</b>로. <b>평단 위에서는 절대 매수 금지.</b><br>매도는 <b>평단+5%와 +10%로 반반 분할</b>.</dd></div>
   <div><dt>데드존</dt><dd>평단 <b>+5% 초과 ~ +9.9%</b> 구간은 매수도 매도도 미체결. 종가가 여기 머물면 아무 일도 안 일어난다.</dd></div>
-  <div><dt>사이클 완료</dt><dd>익절되면 종료 후 재시작. <b>40회차를 다 쓰면 쿼터손절 모드</b>로 넘어간다 — 이 계산기는 거기까지는 다루지 않는다.</dd></div>
+  <div><dt>사이클 완료</dt><dd>익절되면 종료 후 재시작. <b>설정한 분할 수를 다 쓰면 쿼터손절 모드</b>로 넘어간다 — 이 계산기는 거기까지는 다루지 않는다.</dd></div>
 </dl></div>
 
 <footer>
   LOC(Limit On Close)는 <b>종가가 지정가 이하일 때만 체결</b>되는 매수 주문입니다. 종가만 넣으면 규칙대로 <b>추정</b>하고, <b>매수·매도 체결 주수를 직접 넣으면 그 값이 우선</b>합니다. 매도 지정가는 장중에도 체결되니 아침에 실제 체결을 확인해 넣으세요. 수수료·환전 스프레드는 반영하지 않습니다.<br>
-  소수점 매수가 안 되는 계좌 기준이라 <b>1회 2주 고정</b>으로 계산합니다. 투자 판단과 실제 주문은 본인 책임입니다.
+  소수점 매수가 안 되는 계좌 기준으로 <b>1회 예산 ÷ 계산 기준 주가를 정수로 버림</b>해 주수를 계산합니다. 기준 주가는 실시간 시세가 아니며 설정에서 수정할 수 있습니다. 투자 판단과 실제 주문은 본인 책임입니다.
 </footer>
 </div>
 
@@ -278,7 +281,16 @@ if(cycleNumber===1){ const byD=Object.fromEntries(closes.map(c=>[c[0],c]));
 if(cycleNumber===1 && anchor && anchor.d < ANCHOR0.d && closes.some(c=>c[0]===ANCHOR0.d)) anchor={...ANCHOR0};
 
 const usdP=()=>cfg.P/cfg.fx, one=()=>cfg.Q;   // 1회분 = Q주 (정수 매수)
-const halfQ=()=>Math.max(1,Math.floor(cfg.Q/2));
+const halfQ=()=>Math.floor(cfg.Q/2);
+const remainingQ=()=>cfg.Q-halfQ();
+const roundOf=sh=>cfg.Q>0?sh/cfg.Q:0;
+function autoConfig(settings, rows, ref){
+  const next={...settings,autoSizing:true};
+  next.sizingPrice=Number(settings.sizingPrice)>0?Number(settings.sizingPrice):(rows[0]?.[1]||ref?.px||0);
+  next.startDate=settings.startDate||rows[0]?.[0]||(ref?nextBizDay(ref.d):'');
+  next.Q=next.sizingPrice>0?Math.max(0,Math.floor(next.P/next.fx/next.T/next.sizingPrice)):0;
+  return next;
+}
 const f2=n=>n.toFixed(2), won=n=>Math.round(n).toLocaleString('ko-KR');
 
 /* 종가 목록을 처음부터 되짚어 현재 상태를 만든다 (한 곳에서만 상태가 생기게) */
@@ -287,7 +299,7 @@ function guessBuy(px, avg, sh, rnd){
   const Q=cfg.Q, H=halfQ();
   if(sh===0) return Q;
   if(rnd>=cfg.T) return 0;
-  if(rnd<20) return (px<=avg?H:0) + (px<=avg*1.05?H:0);
+  if(rnd<cfg.T/2) return (px<=avg?H:0) + (px<=avg*1.05?remainingQ():0);
   return px<=avg ? Q : 0;
 }
 
@@ -296,7 +308,7 @@ function replay(){
   let applied=false, ended=false, confirmed=false;
   for(const row of closes){
     const [d,px,bq,sq]=row;
-    const avg=sh?cost/sh:0, rnd=sh/cfg.Q, half=rnd>=20;
+    const avg=sh?cost/sh:0, rnd=roundOf(sh), half=rnd>=cfg.T/2;
     let hit=[], sold=0, bought=0, manual=(bq!==undefined&&bq!==null);
 
     /* 매도: 입력값이 있으면 그대로, 없으면 종가로 추정 */
@@ -379,8 +391,8 @@ function render(){
   for(const number of [...archives.map(a=>a.number),activeNumber]){
     document.getElementById('cycleTab'+number).onclick=()=>{ viewingArchive=number===activeNumber?null:number; render(); };
   }
-  for(const id of ['apply','closeCycle','undo','cfgP','cfgFx','cfgT','cfgQ','inDate','inPx','anAvg','anSh','inBuy']) document.getElementById(id).disabled=!!archive;
-  document.getElementById('reset').disabled=!!archive || cycleNumber>1;
+  for(const id of ['apply','closeCycle','undo','cfgP','cfgFx','cfgT','cfgQ','cfgPrice','cfgStart','inDate','inPx','anAvg','anSh','inBuy']) document.getElementById(id).disabled=!!archive;
+  document.getElementById('reset').disabled=!!archive;
   document.getElementById('newCycle').hidden=!!archive;
   document.getElementById('cycleArchives').hidden=true;
   if(archive){
@@ -400,12 +412,12 @@ function renderCurrent(){
   document.getElementById('cycleTitle').textContent=cycleNumber+'회차'+(waiting?' · 첫 매수 대기':st.ended?' · 완료':' · 진행 중');
   document.getElementById('newCycle').textContent=(cycleNumber+1)+'회차 새로 만들기';
   document.getElementById('newCycle').disabled=false;
-  document.getElementById('reset').disabled=cycleNumber>1;
+  document.getElementById('reset').disabled=false;
   document.getElementById('cycleArchives').innerHTML=archives.map(a=>`<details><summary>${a.number}차 사이클 · 완료 · ${a.start} ~ ${a.end}</summary><p class="h2sub">${(f=>f?`매도 전 ${f.sh}주 · 평단 $${f.avg.toFixed(4)} → 종가 $${f2(f.px)} · 최종 수익률 ${pct(f.pct)} (${f.pl>=0?'+':''}${won(f.pl*(a.cfg&&a.cfg.fx||cfg.fx))}원, 종가 기준 추정)`:`완료 시 보유 ${a.state.sh}주`)(finalRet(a.state))}${Number.isFinite(a.realizedReturnPct)&&Number.isFinite(a.realizedProfitUsd)?` · <b>실현 수익률 ${pct(a.realizedReturnPct)} · 실현손익 ${a.realizedProfitUsd>=0?'+':''}$${a.realizedProfitUsd.toFixed(2)}</b> (계좌 확인)`:''} · ${a.state.confirmed?'전량 매도 확인':'종가 기준 매도 추정'}</p><div class="scroll"><table><thead><tr><th>날짜</th><th>종가</th><th>매수 회차</th><th>체결</th><th>보유</th></tr></thead><tbody>${a.state.rows.filter(r=>r.hit.length&&!r.nofill).slice().reverse().map(r=>`<tr><td>${r.d}</td><td>$${f2(r.px)}</td><td>${r.rnd.toFixed(1)}</td><td>${r.hit.join(' + ')}</td><td>${r.sh}주</td></tr>`).join('')}</tbody></table></div></details>`).join('');
   const closing=closingOf(st), base=closing||{sh:st.sh,inv:st.inv};
   const realized=cycleNumber===1?archives.find(a=>a.number===1):null;
   const hasRealized=realized&&Number.isFinite(realized.realizedReturnPct)&&Number.isFinite(realized.realizedProfitUsd);
-  const avg=base.sh?base.inv/base.sh:0, rnd=base.sh/cfg.Q, half=rnd>=20, done=rnd>=cfg.T;
+  const avg=base.sh?base.inv/base.sh:0, rnd=roundOf(base.sh), half=rnd>=cfg.T/2, done=rnd>=cfg.T;
   const val=base.sh*st.last, pl=val-base.inv;
   const wd=['일','월','화','수','목','금','토'];
   const lastD=closes.length?closes[closes.length-1][0]:'';
@@ -427,26 +439,30 @@ function renderCurrent(){
     [(hasRealized?'실현손익 <small>계좌 확인</small>':(closing?'종가 손익 추정':'평가손익')) , '<span class="'+((hasRealized?realized.realizedProfitUsd:pl)>=0?'pos':'neg')+'">'+((hasRealized?realized.realizedProfitUsd:pl)>=0?'+':'')+(hasRealized?'$'+realized.realizedProfitUsd.toFixed(2):won(pl*cfg.fx)+'<small>원</small>')+'</span>'],
     /* 수익률은 투입금 대비 — 익절선(+10%)과 같은 잣대라 이게 실제 판단 기준이다 */
     [(hasRealized?'실현 수익률':(closing?'최종 수익률':'수익률'))+' <small>'+(hasRealized?'계좌 확인':(closing?'종가 기준':'투입대비'))+'</small>', '<span class="'+((hasRealized?realized.realizedReturnPct:pl)>=0?'pos':'neg')+'">'+((hasRealized?realized.realizedReturnPct:pl)>=0?'+':'')+(hasRealized?realized.realizedReturnPct:(base.inv?pl/base.inv*100:0)).toFixed(2)+'<small>%</small></span>'],
-    ['원금대비 <small>1천만</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(pl/P*100).toFixed(2)+'<small>%</small></span>']
+    ['원금대비 <small>설정금액</small>', '<span class="'+(pl>=0?'pos':'neg')+'">'+(pl>=0?'+':'')+(pl/P*100).toFixed(2)+'<small>%</small></span>']
   ].map(([k,v])=>`<div class="cell"><p class="k">${k}</p><p class="v">${v}</p></div>`).join('');
 
   document.getElementById('pRound').textContent=rnd.toFixed(1);
-  document.getElementById('pInv').textContent='투입 '+won(base.inv*cfg.fx)+'원 · 40회차 예상소진 '+won(cfg.T*cfg.Q*avg*cfg.fx)+'원';
+  document.getElementById('pInv').textContent='투입 '+won(base.inv*cfg.fx)+'원 · '+cfg.T+'회차 예상소진 '+won(cfg.T*cfg.Q*(cfg.sizingPrice||avg)*cfg.fx)+'원';
+  document.getElementById('pTotal').textContent=cfg.T;
+  document.getElementById('pHalfMark').dataset.l=cfg.T/2+' 후반전';
+  document.getElementById('pEndMark').dataset.l=cfg.T+' 소진';
   document.getElementById('pFill').style.width=Math.min(100,rnd/cfg.T*100)+'%';
 
-  const when=closes.length?nextBizDay(closes[closes.length-1][0]):referenceClose?nextBizDay(referenceClose.d):'–';
+  const when=closes.length?nextBizDay(closes[closes.length-1][0]):cfg.startDate||(referenceClose?nextBizDay(referenceClose.d):'–');
   const kd=when==='–'?'–':`${+when.slice(5,7)}/${+when.slice(8,10)}(${wd[new Date(when+'T00:00:00Z').getUTCDay()]}) 밤`;
   document.getElementById('ordDate').textContent=kd;
   document.getElementById('ordWhen').textContent=
-    when+' 장 마감에 체결 판정 · '+(half?'후반전 (회차 20 이상)':'전반전 (회차 20 미만)');
+    when+' 장 마감에 체결 판정 · '+(half?'후반전 (회차 '+cfg.T/2+' 이상)':'전반전 (회차 '+cfg.T/2+' 미만)');
 
   const O=[], H=halfQ();
-  if(waiting){ O.push(['b','첫 매수 대기','첫 매수 '+cfg.Q+'주 설정 · 평단이 없어 LOC 주문가를 계산하지 않습니다',null,null]); }
+  if(cfg.Q===0){ O.push(['b','매수 주수 확인',cfg.sizingPrice>0?'1회 예산으로 1주를 살 수 없습니다. 원금·분할 수·기준 주가를 확인하세요.':'계산 기준 주가를 입력하면 매수 주수를 계산합니다.',null,null]); }
+  else if(waiting){ O.push(['b','첫 매수 대기','첫 매수 '+cfg.Q+'주 설정 · 평단이 없어 LOC 주문가를 계산하지 않습니다',null,null]); }
   else if(st.ended || targetReached){ O.push(['s','주문 보류',st.ended?'사이클 완료 · 신규 주문 없음':'익절 목표 도달 · 실제 매도 체결 확인 후 주문하세요',null,null]); }
   else if(done){ O.push(['s','매수 없음',cfg.T+'회차 소진 — 쿼터손절 모드',null,null]); }
   else if(!half){
     O.push(['b','LOC 매수 ①','평단 지정가', avg, H]);
-    O.push(['b','LOC 매수 ②','평단+5% 지정가', avg*1.05, H]);
+    O.push(['b','LOC 매수 ②','평단+5% 지정가', avg*1.05, remainingQ()]);
   } else {
     O.push(['b','LOC 매수','평단 지정가 · 평단 위에서는 매수 금지', avg, cfg.Q]);
   }
@@ -457,14 +473,14 @@ function renderCurrent(){
   }
   document.getElementById('orders').innerHTML=`<div class="scroll"><table class="slip">
     <thead><tr><th>구분</th><th>종목</th><th>주문유형</th><th>지정가</th><th>수량</th><th>예상금액</th></tr></thead>
-    <tbody>${O.filter(o=>o[3]).map(([k,nm,dt,px,q])=>`
+    <tbody>${O.filter(o=>o[3]&&o[4]>0).map(([k,nm,dt,px,q])=>`
       <tr class="${k}"><td><span class="tag">${k==='b'?'매수':'매도'}</span></td>
         <td><b>TQQQ</b></td>
         <td>${k==='b'?'LOC (종가 지정가)':'지정가 매도'}<div class="dt">${dt}</div></td>
         <td class="px">$${f2(px)}</td><td class="n"><b>${q}주</b></td>
         <td class="n">${won(q*px*cfg.fx)}원</td></tr>`).join('')}</tbody></table></div>
     ${O.some(o=>!o[3])?'<div class="note">'+O.find(o=>!o[3])[2]+'</div>':''}`;
-  window.__slip = O.filter(o=>o[3]).map(([k,nm,dt,px,q])=>
+  window.__slip = O.filter(o=>o[3]&&o[4]>0).map(([k,nm,dt,px,q])=>
     `TQQQ  ${k==='b'?'매수 LOC':'매도 지정가'}  $${f2(px)}  ${q}주`).join('\n');
 
   const gapLo=avg*1.05, gapHi=avg*1.10;
@@ -497,13 +513,18 @@ function renderCurrent(){
   document.getElementById('cfgFx').value=cfg.fx;
   document.getElementById('cfgT').value=cfg.T;
   document.getElementById('cfgQ').value=cfg.Q;
+  document.getElementById('cfgPrice').value=cfg.sizingPrice||closes[0]?.[1]||referenceClose?.px||'';
+  document.getElementById('cfgStart').value=cfg.startDate||closes[0]?.[0]||(referenceClose?nextBizDay(referenceClose.d):'');
+  document.getElementById('sizingNote').textContent=cfg.autoSizing
+    ? '1회 예산 '+won(cfg.P/cfg.T)+'원 ($'+f2(cfg.P/cfg.fx/cfg.T)+') ÷ 기준 주가 $'+f2(cfg.sizingPrice)+' → '+cfg.Q+'주 (소수점 버림). 기준 주가나 설정을 변경하면 주수가 다시 계산됩니다. 시작일을 바꿔도 실제 거래가 자동으로 추가되지는 않습니다.'
+    : '보관된 설정: 1회 '+cfg.Q+'주. 새 회차에서는 원금·환율·분할 수·기준 주가로 자동 계산합니다.';
   document.getElementById('guess').innerHTML = anchor
     ? `<b>${anchor.d} 계좌 기준</b> — ${anchor.sh}주 · 평단 $${anchor.avg.toFixed(4)}. 이후 날짜만 규칙으로 계산합니다.`
     : '<b>평단·보유주수는 계좌에서 그대로 옮겨 적으세요.</b> 비워두면 종가로 추정하는데, 실제 체결단가와 미세한 오차가 쌓입니다.';
   /* 아침 입력 = 간밤에 끝난 장(마지막 종가일). 오늘 밤 주문(when)은 그 다음 거래일이다.
      종가는 7시 자동 갱신으로 이미 들어와 있으니 미리 채우고, 사용자는 계좌 평단·보유주수만 넣는다 */
   const lastK=lastD?`${+lastD.slice(5,7)}/${+lastD.slice(8,10)}(${wd[new Date(lastD+'T00:00:00Z').getUTCDay()]})`:'';
-  document.getElementById('inDate').value=lastD||(referenceClose?nextBizDay(referenceClose.d):'');
+  document.getElementById('inDate').value=lastD||cfg.startDate||(referenceClose?nextBizDay(referenceClose.d):'');
   document.getElementById('inPx').value=lastD?f2(st.last):'';
   document.getElementById('inDateL').textContent = lastD ? '거래일 — '+lastK+' 장 (간밤)' : '거래일';
   if(viewingArchive===null) try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));}catch(e){ document.getElementById('cycleStatus').textContent+=' 저장 실패: 브라우저 저장 공간을 확인하고 창을 닫지 마세요.'; }
@@ -514,13 +535,14 @@ function startNextCycle(){
   const state=replay();
   const snapshot=JSON.parse(JSON.stringify({number:cycleNumber,cfg,closes,anchor,state,saleConfirmedByUser:state.confirmed,start:closes[0]?.[0]||'미입력',end:closes.at(-1)?.[0]||'미입력'}));
   const nextReference=closes.length?{d:snapshot.end,px:state.last}:referenceClose;
+  const nextCfg=autoConfig({...cfg,sizingPrice:nextReference?.px||cfg.sizingPrice||0,startDate:nextReference?nextBizDay(nextReference.d):''},[],nextReference);
   // 이전 상태를 별도 백업한 다음 저장에 성공한 경우에만 새 사이클로 이동한다.
   try{
     localStorage.setItem(KEY+'-before-cycle-'+cycleNumber,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));
-    localStorage.setItem(KEY,JSON.stringify({cfg,closes:[],anchor:null,cycleNumber:cycleNumber+1,archives:[...archives,snapshot],referenceClose:nextReference}));
+    localStorage.setItem(KEY,JSON.stringify({cfg:nextCfg,closes:[],anchor:null,cycleNumber:cycleNumber+1,archives:[...archives,snapshot],referenceClose:nextReference}));
   }catch(e){ alert('저장하지 못해 기존 사이클을 유지합니다. 브라우저 저장 공간을 확인해주세요.'); return false; }
   archives.push(snapshot); referenceClose=nextReference;
-  cycleNumber++; closes=[]; anchor=null;
+  cycleNumber++; closes=[]; anchor=null; cfg=nextCfg;
   return true;
 }
 document.getElementById('newCycle').onclick=()=>{ if(startNextCycle()) render(); };
@@ -532,6 +554,7 @@ document.getElementById('apply').onclick=()=>{
   const avg=parseFloat(document.getElementById('anAvg').value);
   const sh=parseInt(document.getElementById('anSh').value,10);
   if(!d||!(px>0)){ alert('거래일과 종가는 반드시 넣어주세요.'); return; }
+  if(cfg.startDate && d<cfg.startDate){ alert('거래일은 계산 시작일 이후여야 합니다. 설정의 시작일을 확인해주세요.'); return; }
   const buyRaw=document.getElementById('inBuy').value;
   if(cycleNumber>1 && closes.length===0 && buyRaw===''){
     alert('첫 매수 체결 주수를 입력해주세요. 매수하지 않았다면 0을 입력하세요.'); return;
@@ -561,10 +584,25 @@ document.getElementById('copy').onclick=async e=>{
   setTimeout(()=>e.target.textContent='복사',1400);
 };
 document.getElementById('undo').onclick=()=>{ if(closes.length>1){ const d=closes.pop()[0]; if(anchor&&anchor.d===d) anchor=null; render(); } };
-document.getElementById('reset').onclick=()=>{ if(cycleNumber>1) return; closes=HIST.slice(); render(); };
-['cfgP','cfgFx','cfgT','cfgQ'].forEach(id=>document.getElementById(id).onchange=e=>{
-  const key={cfgP:'P',cfgFx:'fx',cfgT:'T',cfgQ:'Q'}[id], v=Number(e.target.value);
-  if(Number.isFinite(v)&&v>0){ cfg[key]=v; } else { e.target.value=cfg[key]; }
+function applyStartDate(){
+  if(viewingArchive!==null) return;
+  const d=document.getElementById('cfgStart').value;
+  const dt=new Date(d+'T00:00:00Z');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!Number.isFinite(dt.getTime())||dt.toISOString().slice(0,10)!==d){ alert('올바른 계산 시작일을 선택해주세요.'); return; }
+  if(closes.some(c=>c[0]<d)){
+    alert('선택한 시작일 이전에 입력된 거래가 있습니다. 기존 기록을 포함하는 시작일을 선택하거나 새 회차를 만들어주세요.');
+    document.getElementById('cfgStart').value=cfg.startDate||closes[0]?.[0]||'';
+    return;
+  }
+  cfg=autoConfig({...cfg,startDate:d},closes,referenceClose);
+  render();
+}
+document.getElementById('reset').onclick=applyStartDate;
+document.getElementById('cfgStart').onchange=applyStartDate;
+['cfgP','cfgFx','cfgT','cfgPrice'].forEach(id=>document.getElementById(id).onchange=e=>{
+  if(viewingArchive!==null) return;
+  const key={cfgP:'P',cfgFx:'fx',cfgT:'T',cfgPrice:'sizingPrice'}[id], v=Number(e.target.value);
+  if(Number.isFinite(v)&&v>0&&(key!=='T'||Number.isInteger(v))){ cfg=autoConfig({...cfg,[key]:v},closes,referenceClose); }
   render();
 });
 
@@ -611,6 +649,7 @@ reflectFirstCycleSale();
 if(cycleNumber===1 && archives.length===0 && replay().ended) startNextCycle();
 const firstArchive=archives.find(a=>a.number===1);
 if(firstArchive){ firstArchive.realizedReturnPct=FIRST_REALIZED.returnPct; firstArchive.realizedProfitUsd=FIRST_REALIZED.profitUsd; firstArchive.buyAverageUsd=FIRST_REALIZED.buyAverageUsd; firstArchive.sellAverageUsd=FIRST_REALIZED.sellAverageUsd; }
+if(cycleNumber>1) cfg=autoConfig(cfg,closes,referenceClose);
 render();
 
 /* 렌더 직후: 숫자 칸에 NaN이 남으면 기본값으로 복구하고 한 번만 다시 그린다 */
