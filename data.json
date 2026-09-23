@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-22T12:28:21+00:00",
+  "updated": "2026-09-23T00:23:54+00:00",
   "asof": "2026-09-21",
   "qqq": {
     "name": "QQQ",
@@ -13,11 +13,11 @@
     "asof": "2026-09-21"
   },
   "vix": {
-    "price": 14.66,
-    "chg_pct": -1.41
+    "price": 14.21,
+    "chg_pct": -4.44
   },
   "fear_greed": {
-    "score": 33.7,
+    "score": 35.3,
     "label": "공포",
     "prev_close": 33.7,
     "prev_week": 28.0,
@@ -108,68 +108,68 @@
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7764.7,
-      "chg_pct": 1.49,
+      "price": 7764.64,
+      "chg_pct": -0.0,
       "high52": 7798.99,
       "low52": 6343.72,
       "drawdown_pct": -0.4,
-      "rsi": 59.3,
-      "asof": "2026-09-21"
+      "rsi": 59.1,
+      "asof": "2026-09-22"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 27122.09,
-      "chg_pct": 2.26,
-      "high52": 27122.09,
+      "price": 27244.28,
+      "chg_pct": 0.45,
+      "high52": 27244.28,
       "low52": 20794.64,
       "drawdown_pct": 0.0,
-      "rsi": 64.4,
-      "asof": "2026-09-21"
+      "rsi": 65.6,
+      "asof": "2026-09-22"
     },
     {
       "name": "미국 10년물(%)",
       "unit": "",
-      "price": 4.96,
-      "chg_pct": -0.7,
+      "price": 4.97,
+      "chg_pct": 0.1,
       "high52": 5.01,
       "low52": 3.95,
-      "drawdown_pct": -0.9,
-      "rsi": 64.0,
-      "asof": "2026-09-21"
+      "drawdown_pct": -0.8,
+      "rsi": 64.6,
+      "asof": "2026-09-22"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1357.67,
-      "chg_pct": -1.96,
+      "price": 1347.88,
+      "chg_pct": -1.88,
       "high52": 1554.48,
       "low52": 1339.17,
-      "drawdown_pct": -12.7,
-      "rsi": 40.6,
-      "asof": "2026-09-22"
+      "drawdown_pct": -13.3,
+      "rsi": 36.8,
+      "asof": "2026-09-23"
     },
     {
       "name": "삼성전자",
       "unit": "₩",
-      "price": 276500.0,
-      "chg_pct": 0.91,
+      "price": 284500.0,
+      "chg_pct": 2.89,
       "high52": 362100.66,
-      "low52": 70613.87,
-      "drawdown_pct": -23.6,
-      "rsi": 58.0,
-      "asof": "2026-09-22"
+      "low52": 71700.23,
+      "drawdown_pct": -21.4,
+      "rsi": 61.6,
+      "asof": "2026-09-23"
     },
     {
       "name": "코스피",
       "unit": "",
-      "price": 7017.91,
-      "chg_pct": 0.15,
+      "price": 7142.28,
+      "chg_pct": 1.92,
       "high52": 9114.55,
       "low52": 3314.53,
-      "drawdown_pct": -23.0,
-      "rsi": 55.5,
-      "asof": "2026-09-22"
+      "drawdown_pct": -21.6,
+      "rsi": 58.3,
+      "asof": "2026-09-23"
     }
   ],
   "last_seen": {
