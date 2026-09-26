@@ -1,0 +1,35 @@
+#monthlyHistory{margin:30px 0 38px}
+#monthlyHistory .tiles{margin:16px 0}
+#monthlyHistory .tile .v{font-size:20px;overflow-wrap:anywhere}
+#monthlyHistory h3{font-size:15px;margin:0 0 6px}
+.history-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+.history-charts .chart{padding:18px 14px;min-width:0}
+.history-chart-scroll{overflow-x:auto}
+.history-empty{min-height:190px;display:grid;place-content:center;text-align:center;color:var(--ink3);font-size:13px;line-height:1.8}
+.history-svg{display:block;width:100%;min-width:320px;height:auto}
+.history-svg text{font:11px var(--sans);fill:var(--ink2)}
+.history-svg .grid{stroke:var(--line);stroke-width:1}
+.history-svg .zero{stroke:var(--ink3);stroke-dasharray:4 4}
+.history-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
+.history-legend i{display:inline-block;width:15px;height:3px;vertical-align:middle;margin-right:5px}
+.history-entry,.history-settings{margin-top:14px}
+.history-form{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:14px 0}
+.history-form label{flex:1 1 160px;font-size:12px;color:var(--ink2)}
+#monthlyHistory input:not([type=file]){display:block;width:100%;margin-top:5px;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:14px var(--mono);min-height:42px}
+#monthlyHistory button,.history-import{padding:10px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font:13px var(--sans);cursor:pointer;min-height:42px}
+#monthlyHistory button[type=submit]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+#monthlyHistory button:focus-visible,#monthlyHistory input:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+.history-settings summary{cursor:pointer;font-weight:500}
+.history-settings[open] summary{margin-bottom:12px}
+.history-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.history-import input{display:block;max-width:225px;margin-top:6px;font-size:12px}
+.history-table{overflow:auto;margin-top:12px;border:1px solid var(--line);border-radius:8px}
+.history-table table{width:100%;min-width:820px;border-collapse:collapse;background:var(--panel)}
+.history-table th,.history-table td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);font-size:12px;white-space:nowrap}
+.history-table th:first-child,.history-table td:first-child{text-align:left}
+.history-table .history-row-actions{display:flex;gap:5px;justify-content:end}
+#monthlyHistory .history-row-actions button{font-size:11px;min-height:32px;padding:4px 8px}
+.history-positive{color:var(--s3)}
+.history-negative{color:var(--s2)}
+#historyStatus{min-height:1.5em;font-size:13px;color:var(--ink2)}
+@media(max-width:650px){.history-charts{grid-template-columns:1fr}.history-form button{width:100%}#monthlyHistory .tile .v{font-size:16px}}

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>8억 목표 달성판</title>
+<link rel="stylesheet" href="./monthly-history.css?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -199,6 +200,41 @@ footer{margin-top:28px;padding-top:12px;border-top:1px solid var(--line);font-si
     <div class="tile"><p class="k">금융자산 합계</p><p class="v">6.39<small>억 · 오빠 주식 0.5억 포함</small></p></div>
   </div>
 </header>
+
+<section id="monthlyHistory" aria-labelledby="historyTitle">
+  <h2 id="historyTitle">월별 자산 증감 · 투자손익</h2>
+  <p class="h2sub">저축까지 포함해 늘어난 자산과, 저축을 제외한 투자 성과를 함께 확인하세요.</p>
+  <div class="tiles" id="historySummary"></div>
+  <div class="history-charts">
+    <div class="chart"><h3>누적 자산 증감</h3><p class="h2sub">현재 자산 − 기준 자산 · 저축 포함</p><div id="historyAssetChart"></div></div>
+    <div class="chart"><h3>누적 투자손익</h3><p class="h2sub">자산 증감 − 누적 순저축액</p><div id="historyProfitChart"></div></div>
+  </div>
+  <p id="historyRange" class="h2sub"></p>
+  <div class="chart history-entry">
+    <h3>월별 기록 추가 · 수정</h3>
+    <form id="historyForm" class="history-form">
+      <label>자산 기준일<input id="historyDate" type="date" required></label>
+      <label>금융자산 합계 (원)<input id="historyAssets" type="text" inputmode="numeric" placeholder="예: 650,000,000" required></label>
+      <label>직전 기록 이후 순저축액 (원)<input id="historyFlow" type="text" inputmode="text" placeholder="예: 10,000,000" required></label>
+      <button type="submit">월별 기록 저장</button>
+    </form>
+    <p class="h2sub">순저축액은 외부에서 새로 넣은 돈 − 외부로 꺼낸 돈입니다. 인출이 더 많으면 음수로 입력하세요. 계좌 간 이체·종목 매매는 순저축이 아니며, 계좌에 남은 배당·이자는 투자손익에 포함됩니다. 기록 사이에 빠진 달이 있으면 그 기간의 순저축을 합산하세요.</p>
+    <p class="h2sub">금융자산은 위 합계와 동일하게 가족 주식·연금·현금을 포함해 입력하세요. 투자손익에는 실현·평가손익과 원화 환산액 변화가 함께 반영됩니다. 같은 달을 다시 저장하면 기존 월 기록을 수정합니다.</p>
+  </div>
+  <details class="chart history-settings">
+    <summary>비교 기준 설정 · 백업</summary>
+    <p class="h2sub">최초 기준은 2026-09-20 금융자산 합계 639,375,646원입니다. 일부 메모 금액과 무한매수 배정 원금이 포함된 스냅샷으로, 월말 확정 평가액은 아닙니다. 정확한 같은 범위의 자산 총액으로 수정할 수 있습니다.</p>
+    <form id="historyBaseForm" class="history-form">
+      <label>비교 기준일<input id="historyBaseDate" type="date" required></label>
+      <label>기준 금융자산 (원)<input id="historyBaseAssets" type="text" inputmode="numeric" required></label>
+      <button type="submit">비교 기준 저장</button>
+    </form>
+    <div class="history-actions"><button id="historyExport" type="button">기록 백업 다운로드</button><label class="history-import">백업 불러오기<input id="historyImport" type="file" accept="application/json,.json"></label></div>
+    <p class="h2sub">월별 기록은 이 브라우저에 저장됩니다. 다른 기기에서는 백업 파일을 불러오세요. 상단 목표판의 종목별 금액은 이 입력으로 변경되지 않습니다.</p>
+  </details>
+  <p id="historyStatus" role="status" aria-live="polite"></p>
+  <div class="history-table"><table><thead><tr><th>기준일</th><th>금융자산</th><th>기간 순저축</th><th>기간 손익</th><th>누적 자산 증감</th><th>누적 투자손익</th><th>기록</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+</section>
 
 <h2>목표 대비 달성 현황</h2>
 <p class="h2sub">장기·보완·단기 세 묶음. 점선은 0.5억과 1억. 항목에 마우스를 올리면 구성 종목이 보입니다.</p>
@@ -401,5 +437,6 @@ function move(e){ const x=(e.clientX??200), y=(e.clientY??200); const w=tip.offs
 function hide(){ tip.style.display='none'; }
 document.querySelectorAll('.row').forEach(r=>{ r.addEventListener('mouseenter',show); r.addEventListener('mousemove',move); r.addEventListener('mouseleave',hide); r.addEventListener('focus',show); r.addEventListener('blur',hide); });
 </script>
+<script src="./monthly-history.js?v=1"></script>
 </body>
 </html>
