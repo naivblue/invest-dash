@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2026년 금융 자산·손익 추이</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F4F5F7; --panel:#FFFFFF; --sunk:#EBEDF1;
+  --ink:#14171C; --ink2:#555D68; --ink3:#8B939E;
+  --line:#DFE2E8; --line2:#C5CAD3;
+  --up:#C8372D; --up-bg:#FBEAE8;        /* 국내 관행: 증가=적 */
+  --dn:#1F5FA8; --dn-bg:#E7EFF9;        /* 감소=청 */
+  --amber:#9A6B12; --amber-bg:#FBF0DC;
+  --gr:#2E7D52; --gr-fill:rgba(46,125,82,.16);
+  --lift:0 1px 2px rgba(20,23,28,.04),0 8px 20px -14px rgba(20,23,28,.18);
+  --s:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --m:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1216; --panel:#171B21; --sunk:#1F242B;
+  --ink:#E9ECF1; --ink2:#A6AEBA; --ink3:#737C88;
+  --line:#272D35; --line2:#39414B;
+  --up:#F0736A; --up-bg:#331D1B; --dn:#6FA8E8; --dn-bg:#152431;
+  --amber:#D6A544; --amber-bg:#2C2313;
+  --gr:#4FBD93; --gr-fill:rgba(79,189,147,.18);
+  --lift:0 1px 2px rgba(0,0,0,.5),0 8px 20px -14px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --bg:#0F1216; --panel:#171B21; --sunk:#1F242B;
+  --ink:#E9ECF1; --ink2:#A6AEBA; --ink3:#737C88;
+  --line:#272D35; --line2:#39414B;
+  --up:#F0736A; --up-bg:#331D1B; --dn:#6FA8E8; --dn-bg:#152431;
+  --amber:#D6A544; --amber-bg:#2C2313;
+  --gr:#4FBD93; --gr-fill:rgba(79,189,147,.18);
+  --lift:0 1px 2px rgba(0,0,0,.5),0 8px 20px -14px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--s);line-height:1.65;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;margin:0}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px 72px}
+header{padding:36px 0 18px}
+.eyebrow{font-family:var(--m);font-size:11px;letter-spacing:.14em;color:var(--ink3);margin:0 0 8px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px}
+.sub{font-size:13.5px;color:var(--ink2);margin:0}
+h2{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:34px 0 4px}
+.h2sub{font-size:13px;color:var(--ink2);margin:0 0 14px}
+
+.strip{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:8px;overflow:hidden;margin:18px 0 0;box-shadow:var(--lift)}
+.cell{background:var(--panel);padding:13px 14px;flex:1 1 auto}
+.cell .k{font-family:var(--m);font-size:10px;letter-spacing:.08em;color:var(--ink3);
+  margin:0 0 4px;text-transform:uppercase;white-space:nowrap}
+.cell .k small{font-size:9px;opacity:.7}
+.cell .v{font-family:var(--m);font-size:21px;font-weight:700;letter-spacing:-.02em;
+  line-height:1.15;margin:0;white-space:nowrap}
+.cell .v small{font-size:12px;font-weight:500;color:var(--ink3)}
+.up{color:var(--up)} .dn{color:var(--dn)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:16px 16px 10px;box-shadow:var(--lift);overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin:0 0 6px;padding:0 2px}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block;background:var(--up)}
+.sw.b{background:var(--dn)} .sw.a{background:var(--amber)} .sw.g{background:var(--ink3)}
+.sw.ln{height:3px;border-radius:2px;width:16px}
+svg{display:block;width:100%;height:auto}
+.gx{font-family:var(--m);font-size:10px;fill:var(--ink3)}
+.gl{stroke:var(--line);stroke-width:1}
+.zl{stroke:var(--line2);stroke-width:1.5}
+.tl{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:5 4}
+.vlab{font-family:var(--m);font-size:10px;font-weight:700}
+
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:620px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--m);font-size:10px;letter-spacing:.06em;color:var(--ink3);
+  text-transform:uppercase;border-bottom:1px solid var(--line2)}
+td.n{font-family:var(--m)}
+tr:last-child td{border-bottom:none}
+tfoot td{border-top:1px solid var(--line2);font-weight:700;background:var(--sunk)}
+
+.note{background:var(--sunk);border:1px solid var(--line);border-radius:8px;
+  padding:13px 15px;font-size:13px;color:var(--ink2);margin:14px 0 0}
+.note b{color:var(--ink)}
+.site-nav{max-width:980px;margin:18px auto 0;padding:0 18px;display:flex;gap:7px;flex-wrap:wrap}
+.site-nav a{color:var(--ink2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
+.site-nav a[aria-current="page"],.site-nav a:hover{color:var(--ink);background:var(--panel)}
+.site-nav a:focus-visible{outline:2px solid var(--dn);outline-offset:2px}
+footer{margin:34px 0 0;font-size:11.5px;color:var(--ink3);line-height:1.7}
+</style>
+</head>
+<body>
+<nav class="site-nav" data-site-nav aria-label="투자 도구">
+  <a href="/invest-dash/">매수 신호</a>
+  <a href="/invest-dash/asset-goals/">8억 목표</a>
+  <a href="/invest-dash/asset-trend/" aria-current="page">자산·손익 추이</a>
+  <a href="/invest-dash/infinite-buying/">무한매수 계산기</a>
+</nav>
+<div class="wrap">
+<header>
+  <p class="eyebrow">INVEST DASH · 저축 1억 + 투자순익 1억</p>
+  <h1>2026년 금융 자산·손익 추이</h1>
+  <p class="sub">자산이 늘어난 것을 <b>내가 넣은 돈(저축)</b>과 <b>시장이 벌어준 돈(투자순익)</b>으로 갈라서 봅니다. <span id="period"></span></p>
+</header>
+
+<div class="strip" id="strip"></div>
+
+<h2>평가금액 · 누적투자 · 월별손익</h2>
+<p class="h2sub">2025-12 를 0 으로 놓은 금융자산 순증입니다. <b>평가금액과 누적투자의 간격이 곧 투자손익</b>이고, 7월에 두 선이 뒤집혔습니다. 금융자산 총액은 5.32억 → 6.03억.</p>
+<div class="card">
+  <div class="legend">
+    <span><i class="sw ln" style="background:var(--gr)"></i>평가금액</span>
+    <span><i class="sw ln" style="background:var(--dn)"></i>누적투자 (저축)</span>
+    <span><i class="sw ln" style="background:var(--up)"></i>월별손익</span>
+  </div>
+  <svg id="c0" viewBox="0 0 900 330" role="img" aria-label="평가금액 누적투자 월별손익"></svg>
+</div>
+
+<h2>금융자산 증가 · 구성별</h2>
+<p class="h2sub">2025-12 를 0 으로 놓고 그 뒤 늘어난 금액입니다. 부동산과 주담대는 뺀 금융자산만입니다.</p>
+<div class="card">
+  <div class="legend">
+    <span><i class="sw"></i>주식</span>
+    <span><i class="sw a"></i>연금+청약</span>
+    <span><i class="sw g"></i>현금</span>
+  </div>
+  <svg id="c4" viewBox="0 0 900 300" role="img" aria-label="금융자산 증가 구성별"></svg>
+</div>
+
+<h2>투자순익 · 누적</h2>
+<p class="h2sub">5월 +5,779만에서 −4,415만으로. <b>7월 연금펀드(반도체) −3,364만</b>과 <b>8월 쿠팡 −4,000만</b>, 두 항목이 만든 낙폭입니다.</p>
+<div class="card">
+  <svg id="c3" viewBox="0 0 900 300" role="img" aria-label="누적 투자순익"></svg>
+</div>
+
+
+
+
+
+
+
+
+
+<h2>월별 수치</h2>
+<div class="card">
+  <table id="tbl">
+    <thead><tr><th>월</th><th>자산 증감</th><th>저축</th><th>투자순익</th><th>누적 저축</th><th>누적 순익</th><th>금융자산</th></tr></thead>
+    <tbody></tbody>
+    <tfoot></tfoot>
+  </table>
+</div>
+
+<div class="note" id="read"></div>
+
+<footer>출처: 가계부 손익계산서·대차대조표 (2025-12 ~ 2026-09). 금융자산 = 연금+청약 + 현금 + 주식, 부동산·주담대 제외.<br>
+투자순익 = 그달 금융자산 증감 − 그달 저축(저축 + 연금펀드). 즉 내가 넣은 돈을 뺀 나머지이며, 실현·평가손익을 합친 값입니다.<br>
+7·8월 손실은 두 항목에서 나왔습니다. 7월 은주 연금펀드(반도체 집중) 8,065만 → 4,700만 (−41.7%), 8월 오빠 쿠팡 7,000만 → 3,000만 (−57%). 합계 −7,364만이고, 나머지 전 자산의 9개월 합은 +2,949만이었습니다.<br>
+2026-08 손익계산서의 은주월급 85,000,000 은 다른 달(860~1,070만)과 크게 달라 자릿수 오타로 보입니다. 이 표의 저축·자산 수치는 대차대조표 기준이라 그 값의 영향을 받지 않습니다.</footer>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   매달 여기에 한 줄만 추가하면 모든 그래프·표가 따라 갱신됩니다.
+     pen  연금+청약 합계      csh  현금(카뱅모임통장)
+     stk  주식 합계           sav  그달 저축 (저축 + 연금펀드)
+   기준월(25.12)만 sav 가 null 입니다.
+   ══════════════════════════════════════════════════════════════ */
+const DATA=[
+  {m:'25.12', pen: 81194459, csh:24172211, stk:426640385, sav:null},
+  {m:'26.01', pen: 88702289, csh:42454990, stk:439184510, sav: 24601301},
+  {m:'26.02', pen:100804670, csh:26797316, stk:451145226, sav:  7052085},
+  {m:'26.03', pen: 94355710, csh:60521308, stk:456456748, sav: 56179942},
+  {m:'26.04', pen:103874206, csh:58366841, stk:483948570, sav:  2907881},
+  {m:'26.05', pen:117143334, csh:67509102, stk:506064468, sav: 10182531},
+  {m:'26.06', pen:128148884, csh:44774845, stk:516606333, sav:  7852734},
+  {m:'26.07', pen: 94504603, csh:52458427, stk:504621135, sav:  5868392},
+  {m:'26.08', pen:106096367, csh:29383811, stk:476211141, sav:  2054077},
+  {m:'26.09', pen:107966234, csh:27586621, stk:467198141, sav: -1806083},
+  // {m:'26.10', pen:…, csh:…, stk:…, sav:…},
+];
+
+const MA=DATA.map(d=>d.m), M=MA.slice(1);
+const PEN=DATA.map(d=>d.pen), CSH=DATA.map(d=>d.csh), STK=DATA.map(d=>d.stk);
+const TOT=DATA.map(d=>d.pen+d.csh+d.stk);
+const SAV=DATA.slice(1).map(d=>d.sav);
+const NM=M.length;                                  // 경과 개월
+
+const GOAL=1e8, GOAL2=2e8;   // 저축 1억 · 투자순익 1억 · 합계 2억
+
+const D=M.map((_,i)=>TOT[i+1]-TOT[i]);          // 자산 증감
+const PRF=D.map((d,i)=>d-SAV[i]);               // 투자순익
+const cum=a=>a.reduce((o,v)=>(o.push((o.length?o[o.length-1]:0)+v),o),[]);
+const CS=cum(SAV), CP=cum(PRF);
+const CG=M.map((_,i)=>TOT[i+1]-TOT[0]);          // 자산 증가 (25.12 = 0)
+const dSTK=STK.map(v=>v-STK[0]), dPEN=PEN.map(v=>v-PEN[0]), dCSH=CSH.map(v=>v-CSH[0]);
+
+const man=n=>Math.round(n/1e4).toLocaleString('ko-KR')+'만';
+const sgn=n=>(n>=0?'+':'')+man(n);
+const cls=n=>n>=0?'up':'dn';
+
+/* ── 요약 타일 ── */
+document.getElementById('strip').innerHTML=[
+  [`누적 저축 <small>${NM}개월</small>`, `<span class="up">${man(CS.at(-1))}</span>`],
+  ['목표 1억 대비', `<span class="up">${(CS.at(-1)/GOAL*100).toFixed(0)}<small>%</small></span>`],
+  [`누적 투자순익 <small>${NM}개월</small>`, `<span class="${cls(CP.at(-1))}">${sgn(CP.at(-1))}</span>`],
+  ['목표 1억 대비', `<span class="${cls(CP.at(-1))}">${(CP.at(-1)/GOAL*100).toFixed(0)}<small>%</small></span>`],
+  ['자산 순증 <small>합계</small>', `<span class="${cls(TOT.at(-1)-TOT[0])}">${sgn(TOT.at(-1)-TOT[0])}</span>`],
+  ['목표 2억 대비', `<span class="${cls(TOT.at(-1)-TOT[0])}">${((TOT.at(-1)-TOT[0])/GOAL2*100).toFixed(0)}<small>%</small></span>`],
+  ['금융자산 <small>26.09</small>', `${(TOT.at(-1)/1e8).toFixed(2)}<small>억</small>`],
+].map(([k,v])=>`<div class="cell"><p class="k">${k}</p><p class="v">${v}</p></div>`).join('');
+
+/* ── 공통 축 ── */
+const W=900,H=300,L=62,R=16,T=18,B=34;
+const px=(i,n)=>L+(W-L-R)*(n===1?0.5:i/(n-1));
+function yscale(lo,hi){ const p=(hi-lo)*0.08||1; lo-=p; hi+=p;
+  return v=>T+(H-T-B)*(1-(v-lo)/(hi-lo)); }
+function grid(svg,y,ticks,fmt){
+  return ticks.map(v=>`<line class="${v===0?'zl':'gl'}" x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`
+    +`<text class="gx" x="${L-8}" y="${(y(v)+3.5).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`).join('');
+}
+function xlabels(labels){
+  return labels.map((m,i)=>`<text class="gx" x="${px(i,labels.length).toFixed(1)}" y="${H-B+18}" text-anchor="middle">${m}</text>`).join('');
+}
+/* 눈금은 깔끔한 단위(1·2·2.5·5 × 10^n)로 끊는다 — 그래야 라벨이 겹치지 않는다 */
+function ticksFor(lo,hi,n=5){
+  const raw=(hi-lo)/(n-1), mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  const step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw)||10*mag;
+  const out=[];
+  for(let v=Math.ceil(lo/step)*step; v<=hi+step*0.01; v+=step) out.push(Math.round(v));
+  if(lo<0&&hi>0&&!out.some(v=>v===0)) out.push(0);
+  return [...new Set(out)].sort((a,b)=>a-b);
+}
+
+/* ── 차트0: 평가금액 · 누적투자 · 월별손익 (2025-12 = 0) ── */
+(function(){
+  const EV=[0,...CG], PR=[0,...CS], PL=[null,...PRF], N=MA.length;
+  const H0=330, B0=34, T0=22;
+  const vals=[...EV,...PR,...PRF,0];
+  const lo=Math.min(...vals), hi=Math.max(...vals);
+  const pad=(hi-lo)*0.12;
+  const y=v=>T0+(H0-T0-B0)*(1-(v-(lo-pad))/((hi+pad)-(lo-pad)));
+  const X=i=>L+(W-L-R)*i/(N-1);
+  let s='';
+  ticksFor(lo,hi).forEach(v=>{
+    s+=`<line class="${v===0?'zl':'gl'}" x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`
+      +`<text class="gx" x="${L-8}" y="${(y(v)+3.5).toFixed(1)}" text-anchor="end">${man(v)}</text>`;
+  });
+  MA.forEach((m,i)=>{ s+=`<text class="gx" x="${X(i).toFixed(1)}" y="${H0-B0+18}" text-anchor="middle">${m}</text>`; });
+  // 평가금액 영역
+  const evp=EV.map((v,i)=>X(i).toFixed(1)+' '+y(v).toFixed(1));
+  s+=`<path d="M${X(0).toFixed(1)} ${y(0).toFixed(1)} L${evp.join(' L')} L${X(N-1).toFixed(1)} ${y(0).toFixed(1)} Z" fill="var(--gr-fill)"/>`;
+  const line=(arr,c,w)=>`<path d="${arr.map((v,i)=>v===null?'':(i&&arr[i-1]!==null?'L':'M')+X(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s+=line(PR,'var(--dn)',2.4)+line(PL,'var(--up)',2.4)+line(EV,'var(--gr)',3);
+  const dot=(arr,c)=>arr.forEach((v,i)=>{ if(v===null) return;
+    s+=`<circle cx="${X(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.6" fill="${c}" stroke="var(--panel)" stroke-width="1.8"/>`; });
+  dot(PR,'var(--dn)'); dot(PL,'var(--up)'); dot(EV,'var(--gr)');
+  const lab=(arr,c,dy)=>arr.forEach((v,i)=>{ if(v===null||(i===0&&v===0)) return;
+    s+=`<text class="vlab" x="${X(i).toFixed(1)}" y="${(y(v)+dy).toFixed(1)}" text-anchor="middle" fill="${c}">${man(v)}</text>`; });
+  lab(EV,'var(--gr)',-11); lab(PR,'var(--dn)',18); lab(PL,'var(--up)',-11);
+  document.getElementById('c0').innerHTML=s;
+})();
+
+/* ── 차트3: 투자순익 누적 ── */
+(function(){
+  const lo=Math.min(...CP,0),hi=Math.max(...CP,0);
+  const y=yscale(lo,hi), z=y(0);
+  const pts=CP.map((v,i)=>px(i,CP.length).toFixed(1)+' '+y(v).toFixed(1));
+  let s=grid(null,y,ticksFor(lo,hi),v=>man(v))+xlabels(M);
+  /* 0선 기준으로 채운 영역 — 플러스와 마이너스를 두 겹으로 */
+  s+=`<path d="M${px(0,CP.length).toFixed(1)} ${z.toFixed(1)} L${pts.join(' L')} L${px(CP.length-1,CP.length).toFixed(1)} ${z.toFixed(1)} Z" fill="var(--up)" opacity="0.10"/>`;
+  s+=`<line class="zl" x1="${L}" x2="${W-R}" y1="${z.toFixed(1)}" y2="${z.toFixed(1)}"/>`;
+  s+=`<path d="M${pts.join(' L')}" fill="none" stroke="var(--up)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  CP.forEach((v,i)=>{
+    s+=`<circle cx="${px(i,CP.length).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" fill="${v>=0?'var(--up)':'var(--dn)'}" stroke="var(--panel)" stroke-width="2"/>`;
+    s+=`<text class="vlab" x="${px(i,CP.length).toFixed(1)}" y="${(v>=0?y(v)-11:y(v)+18).toFixed(1)}" text-anchor="middle" fill="${v>=0?'var(--up)':'var(--dn)'}">${sgn(v)}</text>`;
+  });
+  document.getElementById('c3').innerHTML=s;
+})();
+
+/* ── 차트4: 금융자산 증가 구성별 스택 (25.12 = 0) ── */
+(function(){
+  const hi=Math.max(...CG,0), y=yscale(0,hi), bw=(W-L-R)/MA.length*0.62;
+  let s=grid(null,y,ticksFor(0,hi),v=>man(v))+xlabels(MA);
+  MA.forEach((m,i)=>{
+    const cx=px(i,MA.length)-bw/2; let acc=0;
+    [[dSTK[i],'var(--up)'],[dPEN[i],'var(--amber)'],[dCSH[i],'var(--ink3)']].forEach(([v,c])=>{
+      if(v<=0) return;
+      const y0=y(acc), y1=y(acc+v);
+      s+=`<rect x="${cx.toFixed(1)}" y="${y1.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(y0-y1,0).toFixed(1)}" fill="${c}"/>`;
+      acc+=v;
+    });
+    if(acc>0) s+=`<text class="gx" x="${(cx+bw/2).toFixed(1)}" y="${(y(acc)-7).toFixed(1)}" text-anchor="middle">${man(acc)}</text>`;
+  });
+  s+=`<line class="zl" x1="${L}" x2="${W-R}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>`;
+  document.getElementById('c4').innerHTML=s;
+})();
+
+/* ── 표 ── */
+document.querySelector('#tbl tbody').innerHTML=M.map((m,i)=>`<tr>
+  <td>${m}</td>
+  <td class="n ${cls(D[i])}">${sgn(D[i])}</td>
+  <td class="n ${cls(SAV[i])}">${sgn(SAV[i])}</td>
+  <td class="n ${cls(PRF[i])}">${sgn(PRF[i])}</td>
+  <td class="n">${man(CS[i])}</td>
+  <td class="n ${cls(CP[i])}">${sgn(CP[i])}</td>
+  <td class="n">${(TOT[i+1]/1e8).toFixed(2)}억</td></tr>`).join('');
+document.querySelector('#tbl tfoot').innerHTML=`<tr>
+  <td>${NM}개월 합</td>
+  <td class="n ${cls(TOT.at(-1)-TOT[0])}">${sgn(TOT.at(-1)-TOT[0])}</td>
+  <td class="n up">${man(CS.at(-1))}</td>
+  <td class="n ${cls(CP.at(-1))}">${sgn(CP.at(-1))}</td>
+  <td class="n">${man(CS.at(-1))}</td>
+  <td class="n ${cls(CP.at(-1))}">${sgn(CP.at(-1))}</td>
+  <td class="n">${(TOT.at(-1)/1e8).toFixed(2)}억</td></tr>`;
+
+/* ── 읽는 법 ── */
+const annSav=CS.at(-1)/NM*12, annPrf=CP.at(-1)/NM*12;
+document.getElementById('read').innerHTML=
+ `<b>저축은 목표를 이미 넘겼습니다.</b> ${NM}개월에 ${man(CS.at(-1))} 으로 1억의 ${(CS.at(-1)/GOAL*100).toFixed(0)}% 이고, 연환산하면 ${man(annSav)} 입니다.<br>
+  <b>투자순익은 ${sgn(CP.at(-1))} 입니다.</b> 5월 누적 ${man(CP[4])} 로 고점을 찍은 뒤 넉 달 연속 마이너스였습니다. 연환산 ${sgn(annPrf)}.<br>
+  자산이 ${sgn(TOT.at(-1)-TOT[0])} 늘었는데 그 전부가 저축이고, 시장은 오히려 깎았습니다.<br>
+  <b>손실은 두 항목에서 나왔습니다.</b> 7월 연금펀드(반도체) −3,364만, 8월 쿠팡 −4,000만, 합계 −7,364만. 나머지 전 자산의 9개월 합은 +2,949만이었습니다. <b>이 둘이 없었으면 올해 투자순익은 +2,949만</b>입니다.<br>
+  <b>내년 목표에서 어려운 쪽은 저축 1억이 아니라 투자순익 1억</b>이며, 올해 대비 ${man(GOAL-CP.at(-1))} 을 되돌려야 하는 숫자입니다.`;
+
+document.getElementById('period').textContent=`${M[0]} ~ ${M.at(-1)}, ${NM}개월.`;
+</script>
+</body>
+</html>

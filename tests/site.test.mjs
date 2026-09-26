@@ -6,6 +6,7 @@ const pages = [
   { file: 'index.html', title: 'Market Dash' },
   { file: 'asset-goals/index.html', title: '8억 목표 달성판' },
   { file: 'infinite-buying/index.html', title: 'TQQQ 무한매수 V2.0' },
+  { file: 'asset-trend/index.html', title: '2026년 금융 자산·손익 추이' },
 ];
 
 for (const page of pages) {
@@ -16,6 +17,7 @@ for (const page of pages) {
       assert.match(html, /data-site-nav/);
       assert.match(html, /asset-goals\//);
       assert.match(html, /infinite-buying\//);
+      assert.match(html, /asset-trend\//);
     }
   });
 }
@@ -53,4 +55,18 @@ test('every page declares UTF-8 before Korean content', async () => {
     const head = html.slice(0, 300).toLowerCase();
     assert.match(head, /<meta charset="utf-8">/, `${page.file} must declare UTF-8 early`);
   }
+});
+
+test('asset-trend page keeps its monthly data table editable in one place', async () => {
+  const html = await readFile(new URL('../asset-trend/index.html', import.meta.url), 'utf8');
+  /* 매달 DATA 에 한 줄만 추가하면 되는 구조가 유지되는지 */
+  assert.match(html, /const DATA=\[/);
+  assert.match(html, /\{m:'25\.12'/);
+  assert.match(html, /\{m:'26\.09'/);
+  /* 파생값은 DATA 에서 계산되어야 한다 — 따로 박아두면 갱신 때 어긋난다 */
+  assert.match(html, /const TOT=DATA\.map/);
+  assert.match(html, /const NM=M\.length/);
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script, 'inline script is present');
+  assert.doesNotThrow(() => new Function(script));
 });
