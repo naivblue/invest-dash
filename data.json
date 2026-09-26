@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-25T12:38:36+00:00",
+  "updated": "2026-09-26T00:34:51+00:00",
   "asof": "2026-09-24",
   "qqq": {
     "name": "QQQ",
@@ -13,11 +13,11 @@
     "asof": "2026-09-24"
   },
   "vix": {
-    "price": 15.11,
-    "chg_pct": -3.57
+    "price": 14.87,
+    "chg_pct": -5.11
   },
   "fear_greed": {
-    "score": 36.0,
+    "score": 37.0,
     "label": "공포",
     "prev_close": 36.1,
     "prev_week": 30.4,
@@ -108,45 +108,45 @@
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7704.13,
-      "chg_pct": -0.02,
+      "price": 7743.41,
+      "chg_pct": 0.51,
       "high52": 7798.99,
       "low52": 6343.72,
-      "drawdown_pct": -1.2,
-      "rsi": 53.9,
-      "asof": "2026-09-24"
+      "drawdown_pct": -0.7,
+      "rsi": 56.8,
+      "asof": "2026-09-25"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 26939.37,
-      "chg_pct": 0.01,
-      "high52": 27122.09,
+      "price": 27068.72,
+      "chg_pct": 0.48,
+      "high52": 27244.28,
       "low52": 20794.64,
-      "drawdown_pct": -0.7,
-      "rsi": 60.4,
-      "asof": "2026-09-24"
+      "drawdown_pct": -0.6,
+      "rsi": 61.2,
+      "asof": "2026-09-25"
     },
     {
       "name": "미국 10년물(%)",
       "unit": "",
       "price": 5.18,
-      "chg_pct": 0.29,
+      "chg_pct": 0.43,
       "high52": 5.18,
       "low52": 3.95,
       "drawdown_pct": 0.0,
-      "rsi": 75.5,
+      "rsi": 76.1,
       "asof": "2026-09-25"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1355.52,
-      "chg_pct": -0.51,
+      "price": 1355.28,
+      "chg_pct": -0.53,
       "high52": 1554.48,
       "low52": 1339.17,
       "drawdown_pct": -12.8,
-      "rsi": 41.5,
+      "rsi": 41.4,
       "asof": "2026-09-25"
     },
     {
@@ -164,11 +164,11 @@
       "name": "코스피",
       "unit": "",
       "price": 7080.92,
-      "chg_pct": 1.04,
+      "chg_pct": 0.9,
       "high52": 9114.55,
-      "low52": 3314.53,
+      "low52": 3344.2,
       "drawdown_pct": -22.3,
-      "rsi": 57.0,
+      "rsi": 57.4,
       "asof": "2026-09-23"
     }
   ],
