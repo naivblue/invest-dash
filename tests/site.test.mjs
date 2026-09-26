@@ -5,7 +5,7 @@ import test from 'node:test';
 const pages = [
   { file: 'index.html', title: 'Market Dash' },
   { file: 'asset-goals/index.html', title: '8억 목표 달성판' },
-  { file: 'infinite-buying/index.html', title: 'TQQQ 무한매수 V2.0', standalone: true },
+  { file: 'infinite-buying/index.html', title: 'TQQQ 무한매수 V2.0' },
 ];
 
 for (const page of pages) {

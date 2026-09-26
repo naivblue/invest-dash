@@ -136,10 +136,19 @@ tr.today td{background:var(--amber-bg)}
 .rules dd{margin:3px 0 0;font-size:13px;color:var(--ink2)}
 .rules dd b{color:var(--ink);font-weight:600}
 footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3);line-height:1.6}
+.site-nav{max-width:980px;margin:18px auto 0;padding:0 18px;display:flex;gap:7px;flex-wrap:wrap}
+.site-nav a{color:var(--ink2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
+.site-nav a[aria-current="page"],.site-nav a:hover{color:var(--ink);background:var(--panel)}
+.site-nav a:focus-visible{outline:2px solid var(--sell);outline-offset:2px}
 </style>
 </head>
 <body>
 
+<nav class="site-nav" data-site-nav aria-label="투자 도구">
+  <a href="/invest-dash/">매수 신호</a>
+  <a href="/invest-dash/asset-goals/">8억 목표</a>
+  <a href="/invest-dash/infinite-buying/" aria-current="page">무한매수 계산기</a>
+</nav>
 <div class="wrap">
 <header>
   <p class="eyebrow">INFINITE BUYING V2.0 · TQQQ</p>
