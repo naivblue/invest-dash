@@ -1,16 +1,16 @@
 {
-  "updated": "2026-09-26T00:34:51+00:00",
-  "asof": "2026-09-24",
+  "updated": "2026-09-26T12:07:05+00:00",
+  "asof": "2026-09-25",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 741.1,
-    "chg_pct": -0.01,
+    "price": 744.5,
+    "chg_pct": 0.46,
     "high52": 747.46,
     "low52": 557.09,
-    "drawdown_pct": -0.9,
-    "rsi": 63.3,
-    "asof": "2026-09-24"
+    "drawdown_pct": -0.4,
+    "rsi": 65.0,
+    "asof": "2026-09-25"
   },
   "vix": {
     "price": 14.87,
@@ -64,13 +64,13 @@
   "qld": {
     "name": "QLD (2x)",
     "unit": "$",
-    "price": 96.1,
-    "chg_pct": -0.06,
+    "price": 96.95,
+    "chg_pct": 0.88,
     "high52": 100.44,
     "low52": 57.11,
-    "drawdown_pct": -4.3,
-    "rsi": 62.5,
-    "asof": "2026-09-24"
+    "drawdown_pct": -3.5,
+    "rsi": 64.2,
+    "asof": "2026-09-25"
   },
   "triggers": {
     "-10": 672.71,
@@ -86,24 +86,24 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 741.1,
-      "chg_pct": -0.01,
+      "price": 744.5,
+      "chg_pct": 0.46,
       "high52": 747.46,
       "low52": 557.09,
-      "drawdown_pct": -0.9,
-      "rsi": 63.3,
-      "asof": "2026-09-24"
+      "drawdown_pct": -0.4,
+      "rsi": 65.0,
+      "asof": "2026-09-25"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 96.1,
-      "chg_pct": -0.06,
+      "price": 96.95,
+      "chg_pct": 0.88,
       "high52": 100.44,
       "low52": 57.11,
-      "drawdown_pct": -4.3,
-      "rsi": 62.5,
-      "asof": "2026-09-24"
+      "drawdown_pct": -3.5,
+      "rsi": 64.2,
+      "asof": "2026-09-25"
     },
     {
       "name": "S&P 500",
@@ -141,13 +141,13 @@
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1355.28,
-      "chg_pct": -0.53,
+      "price": 1354.4,
+      "chg_pct": -0.95,
       "high52": 1554.48,
       "low52": 1339.17,
-      "drawdown_pct": -12.8,
-      "rsi": 41.4,
-      "asof": "2026-09-25"
+      "drawdown_pct": -12.9,
+      "rsi": 41.3,
+      "asof": "2026-09-26"
     },
     {
       "name": "삼성전자",
