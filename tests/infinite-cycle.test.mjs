@@ -333,3 +333,26 @@ test('a second cycle shows the same summary while running and when completed',()
   assert.match(a.elements.get('cycleStatus').innerHTML,/최종 수익률[\s\S]*\+10\.01%/);
   assert.match(a.elements.get('log').innerHTML,/\+10\.01%/);
 });
+
+/* 2026-09-29 사용자 보고: 2회차 첫 매수를 넣었는데 "전량 매도 확인 · 사이클 완료"로 찍히고 보유가 0이 됐다.
+   사기 전 계좌 보유가 0인 것은 당연한데, 그 0을 "다 팔아서 비었다"는 확인으로 읽은 것이 원인이다. */
+test('a first buy of a new cycle is not read as a confirmed sell-off just because holdings were zero',()=>{
+  const a=app(new Map(),true);
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'5',anSh:'0'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  assert.equal(a.run('replay().sh'),5,'산 주식이 남아 있어야 한다');
+  assert.equal(a.run('replay().ended'),false,'첫 매수로 사이클이 끝나면 안 된다');
+  assert.equal(a.run('JSON.stringify(replay().rows.at(-1).hit)').includes('전량 매도'),false);
+});
+
+/* 잘못 들어간 기준점은 같은 날짜를 다시 입력하면 지워져야 한다 (행이 하나뿐이라 되돌리기가 안 먹는다) */
+test('re-entering the same day without account values clears a stale anchor',()=>{
+  const a=app(new Map(),true);
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'0',anSh:'0'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  assert.equal(a.run('anchor && anchor.sh'),0);
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'5',anSh:'',anAvg:''})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  assert.equal(a.run('anchor'),null,'계좌 값을 비우고 다시 넣으면 기준점이 사라져야 한다');
+  assert.equal(a.run('replay().sh'),5);
+});

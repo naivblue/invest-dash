@@ -314,7 +314,7 @@ function guessBuy(px, avg, sh, rnd){
 }
 
 function replay(){
-  let cost=0, sh=0; const rows=[];
+  let cost=0, sh=0, everHeld=false; const rows=[];
   let applied=false, ended=false, confirmed=false;
   for(const row of closes){
     const [d,px,bq,sq]=row;
@@ -335,6 +335,7 @@ function replay(){
       hit.push(sh===0 ? `첫날 ${bought}주` : `매수 ${bought}주 @$${f2(px)}`);
       sh+=bought; cost+=bought*px;
     }
+    if(sh>0) everHeld=true;                      /* 아직 한 주도 산 적 없는 회차는 '완료'가 될 수 없다 */
     if(!hit.length) hit.push(null);
     const rec={d,px,rnd,avg,hit:hit.filter(Boolean),inv:cost,sh,manual};
     if(anchor && !applied && d>=anchor.d){          // 기준일부터 계좌 값을 진실로 삼는다
@@ -343,7 +344,7 @@ function replay(){
       /* 기준점 행은 평단의 근거라 표에 남지만, 그날 체결이 없었으면 그렇게 읽혀야 한다 */
       rec.nofill = rec.hit.length===0;
       rec.hit=[`${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주 · 평단 $${anchor.avg.toFixed(4)}`];
-      ended=sh===0; confirmed=ended;
+      ended=sh===0&&everHeld; confirmed=ended;
       if(ended){ rec.nofill=false; rec.hit=['전량 매도 확인 · 사이클 완료']; }
     } else if(sold>0 && sh===0){
       /* 매도 주수를 직접 입력했으면 사용자가 확인한 매도다. 종가로 추정한 것과 구분한다 */
@@ -582,8 +583,10 @@ document.getElementById('apply').onclick=()=>{
   }
   const bq=buyRaw===''?undefined:Math.max(0,parseInt(buyRaw,10)||0);   /* 0 이면 미체결로 기록, 비우면 규칙으로 추정 */
   closes=closes.filter(c=>c[0]!==d); closes.push([d,px,bq,0]); closes.sort((a,b)=>a[0]<b[0]?-1:1);
-  /* 계좌 평단·보유를 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선 */
-  if(sh===0 || (avg>0 && sh>0)) anchor={d,avg:sh===0?0:avg,sh};
+  /* 계좌 평단·보유를 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선.
+     보유 0은 "다 팔아서 비었다"는 확인이다. 같은 날 매수가 있으면 "사기 전이라 없다"는 뜻이므로 기준점이 아니다. */
+  if((sh===0 && !(bq>0)) || (avg>0 && sh>0)) anchor={d,avg:sh===0?0:avg,sh};
+  else if(anchor && anchor.d===d) anchor=null;   /* 계좌 값을 비우고 같은 날을 다시 넣으면 잘못 찍힌 기준점을 지운다 */
   ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
 };
 document.getElementById('closeCycle').onclick=()=>{
