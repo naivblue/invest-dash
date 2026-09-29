@@ -390,3 +390,16 @@ test('a device whose 9/29 anchor still carries the old holdings field is correct
   const b=app(a.storage);
   assert.equal(b.run('replay().sh'),6,'다시 열어도 유지');
 });
+/* 2회차엔 종가 자동 갱신이 없다. 날짜 칸이 마지막 입력일에 머물면 다음 아침 [반영]이 그 행을 덮어쓴다 */
+test('after a morning entry in a later cycle the date field moves to the next trading day and the close is blank',()=>{
+  const a=app(new Map(),true);
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'82',inBuy:'2',anAvg:'79.3'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  assert.equal(a.elements.get('inDate').value,'2026-09-30');
+  assert.equal(a.elements.get('inPx').value,'');
+  for(const [id,value] of Object.entries({inPx:'83',inBuy:'2',anAvg:'80.5'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  assert.equal(a.run('closes.length'),2,'새 날짜로 쌓여야 한다');
+  assert.equal(a.run('replay().sh'),4);
+  assert.equal(a.elements.get('inDate').value,'2026-10-01');
+});

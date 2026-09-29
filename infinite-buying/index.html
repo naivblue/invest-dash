@@ -545,13 +545,16 @@ function renderCurrent(){
     : '보관된 설정: 1회 '+cfg.Q+'주. 새 회차에서는 원금·환율·분할 수·기준 주가로 자동 계산합니다.';
   document.getElementById('guess').innerHTML = anchor
     ? `<b>${anchor.d} 계좌 기준</b> — ${anchor.sh===null?'보유는 체결 입력대로':anchor.sh+'주'} · 평단 $${anchor.avg.toFixed(4)}. 이후 날짜만 규칙으로 계산합니다.`
-    : '<b>평단·보유주수는 계좌에서 그대로 옮겨 적으세요.</b> 비워두면 종가로 추정하는데, 실제 체결단가와 미세한 오차가 쌓입니다.';
+    : '<b>평단은 계좌에서 그대로 옮겨 적으세요.</b> 비워두면 종가로 추정하는데, 실제 체결단가와 미세한 오차가 쌓입니다.';
   /* 아침 입력 = 간밤에 끝난 장(마지막 종가일). 오늘 밤 주문(when)은 그 다음 거래일이다.
      종가는 7시 자동 갱신으로 이미 들어와 있으니 미리 채우고, 사용자는 계좌 평단·보유주수만 넣는다 */
   const lastK=lastD?`${+lastD.slice(5,7)}/${+lastD.slice(8,10)}(${wd[new Date(lastD+'T00:00:00Z').getUTCDay()]})`:'';
-  document.getElementById('inDate').value=lastD||cfg.startDate||(referenceClose?nextBizDay(referenceClose.d):'');
-  document.getElementById('inPx').value=lastD?f2(st.last):'';
-  document.getElementById('inDateL').textContent = lastD ? '거래일 — '+lastK+' 장 (간밤)' : '거래일';
+  /* 2회차부터는 종가 자동 갱신(HIST)이 없다. 마지막 입력일을 그대로 두면 [반영]이 그 행을 덮어쓰므로
+     다음 거래일을 기본값으로 잡고 종가는 비워 사용자가 채우게 한다. 같은 날을 고치려면 날짜를 되돌리면 된다 */
+  const nextIn=cycleNumber>1&&lastD;
+  document.getElementById('inDate').value=nextIn?nextBizDay(lastD):(lastD||cfg.startDate||(referenceClose?nextBizDay(referenceClose.d):''));
+  document.getElementById('inPx').value=lastD&&!nextIn?f2(st.last):'';
+  document.getElementById('inDateL').textContent = nextIn ? '거래일 — '+lastK+' 다음 장' : lastD ? '거래일 — '+lastK+' 장 (간밤)' : '거래일';
   if(viewingArchive===null) try{localStorage.setItem(KEY,JSON.stringify({cfg,closes,anchor,cycleNumber,archives,referenceClose}));}catch(e){ document.getElementById('cycleStatus').textContent+=' 저장 실패: 브라우저 저장 공간을 확인하고 창을 닫지 마세요.'; }
 }
 
