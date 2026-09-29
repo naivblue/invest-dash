@@ -15,7 +15,7 @@ function app(storage=new Map(),correct=false){
   const document={getElementById(id){if(!elements.has(id)) elements.set(id,{value:'',style:{},dataset:{},innerHTML:'',textContent:''}); return elements.get(id);},querySelectorAll(){return [];}};
   const context=vm.createContext({document,window:{},localStorage:{getItem(key){return storage.get(key)||null;},setItem(key,value){storage.set(key,value);}},console,confirm:()=>true,alert:()=>{},navigator:{},setTimeout});
   vm.runInContext(script,context);
-  for(const id of ['inBuy','anSh','anAvg']) document.getElementById(id);
+  for(const id of ['inBuy','anAvg']) document.getElementById(id);
   return {elements,storage,run:code=>vm.runInContext(code,context)};
 }
 function setting(a,id,value){
@@ -109,10 +109,10 @@ test('zero buys still allows a target sale, and future closes do not restart buy
   assert.match(a.elements.get('cycleStatus').innerHTML,/사이클 완료 \(추정\)/);
   assert.equal(a.run('window.__slip'),'');
 });
-test('zero account holdings can close a cycle without an average price',()=>{
+test('the sell-all button closes a cycle without an average price',()=>{
   const a=app();
-  for(const [id,value] of Object.entries({inDate:'2026-09-21',inPx:'79.08',anSh:'0',anAvg:'',inBuy:'0'})) a.elements.get(id).value=value;
-  a.elements.get('apply').onclick();
+  for(const [id,value] of Object.entries({inDate:'2026-09-21',inPx:'79.08',anAvg:''})) a.elements.get(id).value=value;
+  a.elements.get('closeCycle').onclick();
   assert.equal(a.run('replay().confirmed'),true);
   assert.equal(a.run('replay().sh'),0);
 });
@@ -338,7 +338,7 @@ test('a second cycle shows the same summary while running and when completed',()
    사기 전 계좌 보유가 0인 것은 당연한데, 그 0을 "다 팔아서 비었다"는 확인으로 읽은 것이 원인이다. */
 test('a first buy of a new cycle is not read as a confirmed sell-off just because holdings were zero',()=>{
   const a=app(new Map(),true);
-  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'5',anSh:'0'})) a.elements.get(id).value=value;
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'5'})) a.elements.get(id).value=value;
   a.elements.get('apply').onclick();
   assert.equal(a.run('replay().sh'),5,'산 주식이 남아 있어야 한다');
   assert.equal(a.run('replay().ended'),false,'첫 매수로 사이클이 끝나면 안 된다');
@@ -348,26 +348,31 @@ test('a first buy of a new cycle is not read as a confirmed sell-off just becaus
 /* 잘못 들어간 기준점은 같은 날짜를 다시 입력하면 지워져야 한다 (행이 하나뿐이라 되돌리기가 안 먹는다) */
 test('re-entering the same day without account values clears a stale anchor',()=>{
   const a=app(new Map(),true);
-  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'0',anSh:'0'})) a.elements.get(id).value=value;
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'0',anAvg:'80'})) a.elements.get(id).value=value;
   a.elements.get('apply').onclick();
-  assert.equal(a.run('anchor && anchor.sh'),0);
-  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'5',anSh:'',anAvg:''})) a.elements.get(id).value=value;
+  assert.equal(a.run('anchor && anchor.avg'),80);
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'80',inBuy:'5',anAvg:''})) a.elements.get(id).value=value;
   a.elements.get('apply').onclick();
   assert.equal(a.run('anchor'),null,'계좌 값을 비우고 다시 넣으면 기준점이 사라져야 한다');
   assert.equal(a.run('replay().sh'),5);
 });
 
-/* 계좌 확인으로 보유가 늘었으면 그날 체결이 있었던 것이다. 미체결로 숨기고 앞 행에 보유를 덮어쓰면
-   9/28 첫날 2주 행이 4주로 보인다 (2026-09-30 사용자 보고) */
-test('an account check that raises holdings is shown as that day\'s fill, not hidden and copied onto the previous row',()=>{
+/* 1회 4주 설정에서 9/28 4주 · 9/29 2주 매수 = 6주. 표의 회차는 거래 후 보유÷1회주수(1.0 · 1.5)이고
+   보유주수는 입력받지 않고 체결 주수로 계산한다 (2026-09-30 사용자 요청) */
+test('table round is post-trade holdings over lot size, and holdings come from filled buys, not a separate field',()=>{
   const a=app(new Map(),true);
-  for(const [id,value] of Object.entries({inDate:'2026-09-28',inPx:'78',inBuy:'2'})) a.elements.get(id).value=value;
+  setting(a,'cfgT',20);
+  assert.equal(a.run('cfg.Q'),4);
+  for(const [id,value] of Object.entries({inDate:'2026-09-28',inPx:'78',inBuy:'4'})) a.elements.get(id).value=value;
   a.elements.get('apply').onclick();
-  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'82',inBuy:'',anSh:'4',anAvg:'77.5'})) a.elements.get(id).value=value;
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'82',inBuy:'2',anAvg:'79.3'})) a.elements.get(id).value=value;
   a.elements.get('apply').onclick();
+  assert.equal(a.run('replay().sh'),6);
+  assert.equal(a.run('anchor.sh'),null);
   const rows=a.elements.get('log').innerHTML.split('<tr').slice(1);
-  assert.equal(rows.length,2,'9/28·9/29 두 행이 다 보여야 한다');
-  assert.match(rows[0],/2026-09-29/); assert.match(rows[0],/4주<\/td>/); assert.match(rows[0],/\+2주/);
-  assert.doesNotMatch(rows[0],/미체결/);
-  assert.match(rows[1],/2026-09-28/); assert.match(rows[1],/>2주<\/td>/);
+  assert.equal(rows.length,2);
+  assert.match(rows[0],/2026-09-29/); assert.match(rows[0],/>1\.5</); assert.match(rows[0],/6주<\/td>/);
+  assert.match(rows[0],/매수 2주 @\$82\.00 \+ 계좌 확인 6주 · 평단 \$79\.3000/);
+  assert.match(rows[1],/2026-09-28/); assert.match(rows[1],/>1\.0</); assert.match(rows[1],/>4주<\/td>/);
+  assert.equal(a.elements.get('pRound').textContent,'1.5');
 });

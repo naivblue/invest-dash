@@ -184,12 +184,11 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 <div class="note" id="ordNote"></div>
 
 <h2>아침 입력</h2>
-<p class="h2sub">간밤 장(마지막 종가일)이 끝나면 <b>계좌를 열어 평단·보유주수</b>를 채우고 [반영]. 거래일·종가는 자동으로 채워져 있고, 계좌 실값이 들어가면 오늘 밤 주문가가 위에 바로 나옵니다. <b>주문을 못 걸었거나 미체결이면 매수 체결 주수에 0</b>을 넣으세요. 비워 두면 규칙대로 체결된 것으로 추정합니다.</p>
+<p class="h2sub">간밤 장(마지막 종가일)이 끝나면 <b>계좌 평단과 매수 체결 주수</b>를 채우고 [반영]. 보유주수는 비우면 체결 주수대로 계산합니다. 거래일·종가는 자동으로 채워져 있고, 계좌 실값이 들어가면 오늘 밤 주문가가 위에 바로 나옵니다. <b>주문을 못 걸었거나 미체결이면 매수 체결 주수에 0</b>을 넣으세요. 비워 두면 규칙대로 체결된 것으로 추정합니다.</p>
 <div class="row">
   <div style="flex:1.1;min-width:130px"><label id="inDateL">거래일</label><input type="date" id="inDate"></div>
   <div style="flex:1;min-width:105px"><label>종가 ($)</label><input type="number" id="inPx" step="0.01" placeholder="70.98"></div>
   <div style="flex:1;min-width:115px"><label>계좌 평단 ($)</label><input type="number" id="anAvg" step="0.0001" placeholder="71.2708"></div>
-  <div style="flex:1;min-width:100px"><label>보유주수</label><input type="number" id="anSh" step="1" placeholder="31"></div>
   <div style="flex:1;min-width:120px"><label>매수 체결 주수</label><input type="number" id="inBuy" step="1" min="0" placeholder="비우면 추정"></div>
   <button class="primary" id="apply">반영</button>
   <button id="closeCycle">전량 매도 완료</button>
@@ -213,7 +212,7 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 <div id="cycleArchives"></div>
 <p class="h2sub">체결이 있었던 날만 나옵니다. 주문을 안 걸었거나 미체결이면 그날은 표에 없고, 맨 위 행의 평단·보유가 곧 현재 값입니다.</p>
 <div class="scroll"><table>
-  <thead><tr><th>날짜</th><th>종가</th><th>회차</th><th>평단 (거래 후)</th><th>수익률</th><th>체결</th><th>투입 누적</th><th>보유</th></tr></thead>
+  <thead><tr><th>날짜</th><th>종가</th><th>회차 (거래 후)</th><th>평단 (거래 후)</th><th>수익률</th><th>체결</th><th>투입 누적</th><th>보유</th></tr></thead>
   <tbody id="log"></tbody>
 </table></div>
 
@@ -339,13 +338,14 @@ function replay(){
     if(!hit.length) hit.push(null);
     const rec={d,px,rnd,avg,hit:hit.filter(Boolean),inv:cost,sh,manual};
     if(anchor && !applied && d>=anchor.d){          // 기준일부터 계좌 값을 진실로 삼는다
-      const delta=anchor.sh-sh;                     /* 계좌가 보유 변화를 확인해 주면 그날 체결이 있었던 것이다 */
-      sh=anchor.sh; cost=anchor.sh*anchor.avg; applied=true;
+      const delta=(anchor.sh??sh)-sh;               /* 계좌가 보유 변화를 확인해 주면 그날 체결이 있었던 것이다 */
+      sh=anchor.sh??sh; cost=sh*anchor.avg; applied=true;   /* 보유주수를 비웠으면(null) 체결 계산값을 그대로 쓴다 */
       rec.sh=sh; rec.inv=cost; rec.anchored=true;
       /* 기준점 행은 평단의 근거라 표에 남지만, 그날 체결이 없었으면 그렇게 읽혀야 한다.
          숨긴 행의 보유가 앞 행에 덮어써지므로, 보유가 바뀐 행은 절대 숨기지 않는다 */
       rec.nofill = rec.hit.length===0 && delta===0;
-      rec.hit=[`${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주${rec.hit.length===0&&delta?` (${delta>0?'+':''}${delta}주)`:''} · 평단 $${anchor.avg.toFixed(4)}`];
+      /* 직접 넣은 체결은 남기고 계좌 확인을 뒤에 붙인다. 체결 입력 없이 보유만 바뀌었으면 차이를 적는다 */
+      rec.hit=[...rec.hit, `${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주${rec.hit.length===0&&delta?` (${delta>0?'+':''}${delta}주)`:''} · 평단 $${anchor.avg.toFixed(4)}`];
       ended=sh===0&&everHeld; confirmed=ended;
       if(ended){ rec.nofill=false; rec.hit=['전량 매도 확인 · 사이클 완료']; }
     } else if(sold>0 && sh===0){
@@ -354,6 +354,7 @@ function replay(){
       rec.hit.push(sq>0?'전량 매도 확인 · 사이클 완료':'사이클 완료 (종가 기준 추정)');
     }
     if(sh>0){ ended=false; confirmed=false; }
+    rec.rnd=roundOf(sh);                         /* 표의 회차 = 그날 거래 후 보유 ÷ 1회 주수 (상단 진행률과 같은 정의) */
     rows.push(rec);
   }
   return {rows, inv:cost, sh, ended, confirmed, last:closes.length?closes[closes.length-1][1]:0};
@@ -414,7 +415,7 @@ function render(){
   for(const number of [...archives.map(a=>a.number),activeNumber]){
     document.getElementById('cycleTab'+number).onclick=()=>{ viewingArchive=number===activeNumber?null:number; render(); };
   }
-  for(const id of ['apply','closeCycle','undo','cfgP','cfgFx','cfgT','cfgQ','cfgPrice','cfgStart','inDate','inPx','anAvg','anSh','inBuy']) document.getElementById(id).disabled=!!archive;
+  for(const id of ['apply','closeCycle','undo','cfgP','cfgFx','cfgT','cfgQ','cfgPrice','cfgStart','inDate','inPx','anAvg','inBuy']) document.getElementById(id).disabled=!!archive;
   document.getElementById('reset').disabled=!!archive;
   document.getElementById('newCycle').hidden=!!archive;
   document.getElementById('cycleArchives').hidden=true;
@@ -543,7 +544,7 @@ function renderCurrent(){
     ? '1회 예산 '+won(cfg.P/cfg.T)+'원 ($'+f2(cfg.P/cfg.fx/cfg.T)+') ÷ 기준 주가 $'+f2(cfg.sizingPrice)+' → '+cfg.Q+'주 (소수점 버림). 기준 주가나 설정을 변경하면 주수가 다시 계산됩니다. 시작일을 바꿔도 실제 거래가 자동으로 추가되지는 않습니다.'
     : '보관된 설정: 1회 '+cfg.Q+'주. 새 회차에서는 원금·환율·분할 수·기준 주가로 자동 계산합니다.';
   document.getElementById('guess').innerHTML = anchor
-    ? `<b>${anchor.d} 계좌 기준</b> — ${anchor.sh}주 · 평단 $${anchor.avg.toFixed(4)}. 이후 날짜만 규칙으로 계산합니다.`
+    ? `<b>${anchor.d} 계좌 기준</b> — ${anchor.sh===null?'보유는 체결 입력대로':anchor.sh+'주'} · 평단 $${anchor.avg.toFixed(4)}. 이후 날짜만 규칙으로 계산합니다.`
     : '<b>평단·보유주수는 계좌에서 그대로 옮겨 적으세요.</b> 비워두면 종가로 추정하는데, 실제 체결단가와 미세한 오차가 쌓입니다.';
   /* 아침 입력 = 간밤에 끝난 장(마지막 종가일). 오늘 밤 주문(when)은 그 다음 거래일이다.
      종가는 7시 자동 갱신으로 이미 들어와 있으니 미리 채우고, 사용자는 계좌 평단·보유주수만 넣는다 */
@@ -576,7 +577,6 @@ document.getElementById('apply').onclick=()=>{
   const d=document.getElementById('inDate').value;
   const px=parseFloat(document.getElementById('inPx').value);
   const avg=parseFloat(document.getElementById('anAvg').value);
-  const sh=parseInt(document.getElementById('anSh').value,10);
   if(!d||!(px>0)){ alert('거래일과 종가는 반드시 넣어주세요.'); return; }
   if(cfg.startDate && d<cfg.startDate){ alert('거래일은 계산 시작일 이후여야 합니다. 설정의 시작일을 확인해주세요.'); return; }
   const buyRaw=document.getElementById('inBuy').value;
@@ -585,11 +585,11 @@ document.getElementById('apply').onclick=()=>{
   }
   const bq=buyRaw===''?undefined:Math.max(0,parseInt(buyRaw,10)||0);   /* 0 이면 미체결로 기록, 비우면 규칙으로 추정 */
   closes=closes.filter(c=>c[0]!==d); closes.push([d,px,bq,0]); closes.sort((a,b)=>a[0]<b[0]?-1:1);
-  /* 계좌 평단·보유를 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선.
-     보유 0은 "다 팔아서 비었다"는 확인이다. 같은 날 매수가 있으면 "사기 전이라 없다"는 뜻이므로 기준점이 아니다. */
-  if((sh===0 && !(bq>0)) || (avg>0 && sh>0)) anchor={d,avg:sh===0?0:avg,sh};
-  else if(anchor && anchor.d===d) anchor=null;   /* 계좌 값을 비우고 같은 날을 다시 넣으면 잘못 찍힌 기준점을 지운다 */
-  ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
+  /* 계좌 평단을 넣으면 그 날짜를 기준점으로 삼는다 — 추정보다 항상 우선.
+     보유주수는 매수 체결 주수로 계산하므로 따로 받지 않는다(sh:null). 전량 매도는 [전량 매도 완료] 버튼. */
+  if(avg>0) anchor={d,avg,sh:null};
+  else if(anchor && anchor.d===d) anchor=null;   /* 평단을 비우고 같은 날을 다시 넣으면 잘못 찍힌 기준점을 지운다 */
+  ['anAvg','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
 };
 document.getElementById('closeCycle').onclick=()=>{
   if(viewingArchive!==null) return;
@@ -602,7 +602,7 @@ document.getElementById('closeCycle').onclick=()=>{
   /* 계좌 기준점은 매도 전 평단의 근거다 — 지우면 최종 수익률이 종가 추정으로 어긋난다.
      매도일 이후 기준점만 매도와 충돌하므로 그때만 옮긴다. */
   if(!sh || (anchor && anchor.d>=d)) anchor={d,avg:0,sh:0};
-  ['anAvg','anSh','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
+  ['anAvg','inBuy'].forEach(i=>document.getElementById(i).value=''); render();
 };
 document.getElementById('copy').onclick=async e=>{
   try{ await navigator.clipboard.writeText(window.__slip||''); e.target.textContent='복사됨'; }
