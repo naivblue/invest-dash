@@ -376,3 +376,17 @@ test('table round is post-trade holdings over lot size, and holdings come from f
   assert.match(rows[1],/2026-09-28/); assert.match(rows[1],/>1\.0</); assert.match(rows[1],/>4주<\/td>/);
   assert.equal(a.elements.get('pRound').textContent,'1.5');
 });
+
+test('a device whose 9/29 anchor still carries the old holdings field is corrected once to 6 shares',()=>{
+  const storage=new Map();
+  storage.set('tqqq-v2-state-v4',JSON.stringify({cycleNumber:2,archives:[],referenceClose:{d:'2026-09-22',px:79.08},cfg:{P:10000000,fx:1351.1,T:40,Q:2,sizingPrice:79.08,autoSizing:true},
+    closes:[['2026-09-28',78,2,0],['2026-09-29',82,null,0]],anchor:{d:'2026-09-29',avg:79.3,sh:4}}));
+  const a=app(storage);
+  assert.equal(a.run('replay().sh'),6);
+  assert.equal(a.run('anchor.sh'),null);
+  assert.equal(a.run('cfg.Q'),4); assert.equal(a.run('cfg.T'),20);
+  assert.equal(a.elements.get('pRound').textContent,'1.5');
+  assert.match(a.elements.get('log').innerHTML.split('<tr').slice(1)[0],/>1\.5<[\s\S]*6주<\/td>/);
+  const b=app(a.storage);
+  assert.equal(b.run('replay().sh'),6,'다시 열어도 유지');
+});

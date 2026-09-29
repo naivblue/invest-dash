@@ -671,6 +671,16 @@ function reflectFirstCycleSale(){
   mark();
 }
 reflectFirstCycleSale();
+/* 사용자 확인 (2026-09-30): 2회차는 9/28 4주 · 9/29 2주 매수로 보유 6주.
+   예전 아침 입력의 보유주수(4)가 9/29 기준점에 남아 4주로 보이던 기기를 한 번만 정정한다. */
+const FIX_0929=KEY+'-0929-six';
+try{ if(cycleNumber===2 && anchor && anchor.d==='2026-09-29' && anchor.sh===4 && !localStorage.getItem(FIX_0929)){
+  for(const c of closes){ if(c[0]==='2026-09-28') c[2]=4; if(c[0]==='2026-09-29') c[2]=2; }
+  anchor.sh=null;
+  /* 9/28 4주 = 1회차, 9/29 6주 = 1.5회차 → 1회 4주. 원금·환율·기준가로는 분할 20이 4주다 */
+  if(autoConfig(cfg,closes,referenceClose).Q!==4) cfg={...cfg,T:20};
+  localStorage.setItem(FIX_0929,'1');
+}}catch(e){}
 // 기존 브라우저에서 종료된 첫 사이클은 한 번만 보관하고 2차 사이클을 연다.
 if(cycleNumber===1 && archives.length===0 && replay().ended) startNextCycle();
 const firstArchive=archives.find(a=>a.number===1);
