@@ -356,3 +356,18 @@ test('re-entering the same day without account values clears a stale anchor',()=
   assert.equal(a.run('anchor'),null,'계좌 값을 비우고 다시 넣으면 기준점이 사라져야 한다');
   assert.equal(a.run('replay().sh'),5);
 });
+
+/* 계좌 확인으로 보유가 늘었으면 그날 체결이 있었던 것이다. 미체결로 숨기고 앞 행에 보유를 덮어쓰면
+   9/28 첫날 2주 행이 4주로 보인다 (2026-09-30 사용자 보고) */
+test('an account check that raises holdings is shown as that day\'s fill, not hidden and copied onto the previous row',()=>{
+  const a=app(new Map(),true);
+  for(const [id,value] of Object.entries({inDate:'2026-09-28',inPx:'78',inBuy:'2'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  for(const [id,value] of Object.entries({inDate:'2026-09-29',inPx:'82',inBuy:'',anSh:'4',anAvg:'77.5'})) a.elements.get(id).value=value;
+  a.elements.get('apply').onclick();
+  const rows=a.elements.get('log').innerHTML.split('<tr').slice(1);
+  assert.equal(rows.length,2,'9/28·9/29 두 행이 다 보여야 한다');
+  assert.match(rows[0],/2026-09-29/); assert.match(rows[0],/4주<\/td>/); assert.match(rows[0],/\+2주/);
+  assert.doesNotMatch(rows[0],/미체결/);
+  assert.match(rows[1],/2026-09-28/); assert.match(rows[1],/>2주<\/td>/);
+});

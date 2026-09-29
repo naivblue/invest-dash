@@ -339,11 +339,13 @@ function replay(){
     if(!hit.length) hit.push(null);
     const rec={d,px,rnd,avg,hit:hit.filter(Boolean),inv:cost,sh,manual};
     if(anchor && !applied && d>=anchor.d){          // 기준일부터 계좌 값을 진실로 삼는다
+      const delta=anchor.sh-sh;                     /* 계좌가 보유 변화를 확인해 주면 그날 체결이 있었던 것이다 */
       sh=anchor.sh; cost=anchor.sh*anchor.avg; applied=true;
       rec.sh=sh; rec.inv=cost; rec.anchored=true;
-      /* 기준점 행은 평단의 근거라 표에 남지만, 그날 체결이 없었으면 그렇게 읽혀야 한다 */
-      rec.nofill = rec.hit.length===0;
-      rec.hit=[`${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주 · 평단 $${anchor.avg.toFixed(4)}`];
+      /* 기준점 행은 평단의 근거라 표에 남지만, 그날 체결이 없었으면 그렇게 읽혀야 한다.
+         숨긴 행의 보유가 앞 행에 덮어써지므로, 보유가 바뀐 행은 절대 숨기지 않는다 */
+      rec.nofill = rec.hit.length===0 && delta===0;
+      rec.hit=[`${rec.nofill?'미체결 — ':''}계좌 확인 ${sh}주${rec.hit.length===0&&delta?` (${delta>0?'+':''}${delta}주)`:''} · 평단 $${anchor.avg.toFixed(4)}`];
       ended=sh===0&&everHeld; confirmed=ended;
       if(ended){ rec.nofill=false; rec.hit=['전량 매도 확인 · 사이클 완료']; }
     } else if(sold>0 && sh===0){
