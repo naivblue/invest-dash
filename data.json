@@ -1,28 +1,28 @@
 {
-  "updated": "2026-10-05T00:49:52+00:00",
-  "asof": "2026-10-02",
+  "updated": "2026-10-05T15:41:05+00:00",
+  "asof": "2026-10-05",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 749.58,
-    "chg_pct": 1.02,
-    "high52": 749.58,
+    "price": 753.24,
+    "chg_pct": 0.49,
+    "high52": 753.24,
     "low52": 557.09,
     "drawdown_pct": 0.0,
-    "rsi": 65.6,
-    "asof": "2026-10-02"
+    "rsi": 67.3,
+    "asof": "2026-10-05"
   },
   "vix": {
-    "price": 15.31,
-    "chg_pct": -6.59
+    "price": 15.54,
+    "chg_pct": 1.5
   },
   "fear_greed": {
-    "score": 31.2,
+    "score": 43.3,
     "label": "공포",
-    "prev_close": 28.1,
-    "prev_week": 36.9,
-    "prev_month": 46.1,
-    "asof": "2026-10-02"
+    "prev_close": 31.2,
+    "prev_week": 34.4,
+    "prev_month": 45.2,
+    "asof": "2026-10-05"
   },
   "stage": {
     "n": 1,
@@ -64,18 +64,18 @@
   "qld": {
     "name": "QLD (2x)",
     "unit": "$",
-    "price": 98.13,
-    "chg_pct": 1.96,
+    "price": 99.06,
+    "chg_pct": 0.95,
     "high52": 100.44,
     "low52": 57.11,
-    "drawdown_pct": -2.3,
-    "rsi": 64.8,
-    "asof": "2026-10-02"
+    "drawdown_pct": -1.4,
+    "rsi": 66.5,
+    "asof": "2026-10-05"
   },
   "triggers": {
-    "-10": 674.62,
-    "-20": 599.66,
-    "-30": 524.71
+    "-10": 677.92,
+    "-20": 602.59,
+    "-30": 527.27
   },
   "qld_triggers": {
     "-10": 80.35,
@@ -86,67 +86,67 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 749.58,
-      "chg_pct": 1.02,
-      "high52": 749.58,
+      "price": 753.24,
+      "chg_pct": 0.49,
+      "high52": 753.24,
       "low52": 557.09,
       "drawdown_pct": 0.0,
-      "rsi": 65.6,
-      "asof": "2026-10-02"
+      "rsi": 67.3,
+      "asof": "2026-10-05"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 98.13,
-      "chg_pct": 1.96,
+      "price": 99.06,
+      "chg_pct": 0.95,
       "high52": 100.44,
       "low52": 57.11,
-      "drawdown_pct": -2.3,
-      "rsi": 64.8,
-      "asof": "2026-10-02"
+      "drawdown_pct": -1.4,
+      "rsi": 66.5,
+      "asof": "2026-10-05"
     },
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7722.72,
-      "chg_pct": 0.73,
+      "price": 7758.77,
+      "chg_pct": 0.47,
       "high52": 7798.99,
       "low52": 6343.72,
-      "drawdown_pct": -1.0,
-      "rsi": 54.9,
-      "asof": "2026-10-02"
+      "drawdown_pct": -0.5,
+      "rsi": 57.9,
+      "asof": "2026-10-05"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 27190.86,
-      "chg_pct": 1.19,
-      "high52": 27244.28,
+      "price": 27380.71,
+      "chg_pct": 0.7,
+      "high52": 27380.71,
       "low52": 20794.64,
-      "drawdown_pct": -0.2,
-      "rsi": 62.2,
-      "asof": "2026-10-02"
+      "drawdown_pct": 0.0,
+      "rsi": 65.0,
+      "asof": "2026-10-05"
     },
     {
       "name": "미국 10년물(%)",
       "unit": "",
-      "price": 5.28,
-      "chg_pct": 0.76,
-      "high52": 5.29,
+      "price": 5.33,
+      "chg_pct": 0.97,
+      "high52": 5.33,
       "low52": 3.95,
-      "drawdown_pct": -0.3,
-      "rsi": 74.6,
-      "asof": "2026-10-02"
+      "drawdown_pct": 0.0,
+      "rsi": 76.9,
+      "asof": "2026-10-05"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1343.74,
-      "chg_pct": -1.24,
+      "price": 1342.19,
+      "chg_pct": -1.35,
       "high52": 1554.48,
       "low52": 1339.17,
-      "drawdown_pct": -13.6,
-      "rsi": 39.3,
+      "drawdown_pct": -13.7,
+      "rsi": 38.8,
       "asof": "2026-10-05"
     },
     {
@@ -155,7 +155,7 @@
       "price": 276000.0,
       "chg_pct": 0.0,
       "high52": 362100.66,
-      "low52": 77230.83,
+      "low52": 77230.82,
       "drawdown_pct": -23.8,
       "rsi": 55.8,
       "asof": "2026-10-02"
