@@ -39,6 +39,11 @@ test('infinite-buying page preserves the recovered Claude v24 interface', async 
     '매수 체결 주수',
     '선택일부터 계산',
     '1회 매수 주수 (자동)',
+    'const DEF={P:15000000,fx:1351.1,T:30,Q:2}',
+    'const qtyAtLimit=(budgetKRW,price)=>price>0?budgetKRW/(price*cfg.fx):0;',
+    '회당 예산의 50%',
+    'orderQty(q)',
+    'const orderQty=q=>q.toFixed(2);',
     '체결 이력',
     'V2.0 규칙',
     "const KEY='tqqq-v2-state-v4'",
@@ -47,6 +52,15 @@ test('infinite-buying page preserves the recovered Claude v24 interface', async 
     'fx:1351.1',
     "const ANCHOR0={d:'2026-09-18', avg:71.0204, sh:37}",
   ]) assert.match(html, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+test('fixed-cash order sizing shows decimal shares before integer execution', async () => {
+  const html = await readFile(new URL('../infinite-buying/index.html', import.meta.url), 'utf8');
+  const expression = html.match(/const qtyAtLimit=\(budgetKRW,price\)=>((?:[^;])+);/)?.[1];
+  assert.ok(expression, 'per-order cash sizing helper is present');
+  const qtyAtLimit = new Function('cfg', `return (budgetKRW,price)=>${expression};`)({ fx: 1351.1 });
+  assert.equal(qtyAtLimit(500000, 78.73).toFixed(2), '4.70');
+  assert.match(html, /정수 주수 주문 시에는 직접 내림해 입력하세요/);
 });
 
 test('every page declares UTF-8 before Korean content', async () => {

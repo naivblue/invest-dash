@@ -154,7 +154,7 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 <header>
   <p class="eyebrow">INFINITE BUYING V2.0 · TQQQ</p>
   <h1>무한매수 주문 계산기</h1>
-  <p class="sub">1회 매수 주수는 아래 설정을 따릅니다. 사이클별 체결이력과 입력값은 이 브라우저에만 저장됩니다.</p>
+  <p class="sub">회당 예산은 원금 ÷ 분할 수로 계산합니다. 오늘 밤 주문은 각 LOC 지정가 기준 수량을 소수점 둘째 자리까지 표시합니다.</p>
 </header>
 <div id="cycleTabs" class="row" aria-label="거래 회차 선택"></div>
 <div class="note"><b id="cycleTitle">1회차</b> · 설정한 분할 수에 따라 매수합니다.
@@ -218,16 +218,16 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 
 <h2>V2.0 규칙</h2>
 <div class="rules"><dl>
-  <div><dt>분할</dt><dd>1회 예산 = <b>원금 ÷ 설정한 분할 수</b>. 1회 주수는 예산을 환율과 기준 주가로 나누고 소수점을 버려 계산합니다. 이 계산기의 진행 회차는 <b>보유주수 ÷ 1회 주수</b>로 표시합니다.</dd></div>
-  <div><dt>전반전 · 분할 수의 절반 미만</dt><dd>1회분을 <b>두 주문으로 나눠 LOC 매수</b> — 절반은 <b>평단</b>, 나머지는 <b>평단+5%</b>. 홀수 주수의 남는 1주는 두 번째 주문에 포함합니다.<br>매도는 <b>전량을 평단+10% 지정가</b>.</dd></div>
-  <div><dt>후반전 · 분할 수의 절반 이상</dt><dd>1회분 <b>전체를 평단 LOC</b>로. <b>평단 위에서는 절대 매수 금지.</b><br>매도는 <b>평단+5%와 +10%로 반반 분할</b>.</dd></div>
+  <div><dt>분할</dt><dd>1회 예산 = <b>원금 ÷ 설정한 분할 수</b>. 오늘 밤 주문 수량은 주문별 배정액을 해당 LOC 지정가와 환율로 나누어 계산합니다. 주문표에는 소수점 둘째 자리까지 표시하며, 정수 주수 주문 시에는 직접 내림해 입력하세요.</dd></div>
+  <div><dt>전반전 · 분할 수의 절반 미만</dt><dd>1회분을 <b>두 주문으로 나눠 LOC 매수</b> — 각각 회당 예산의 절반을 배정해 <b>평단</b>, <b>평단+5%</b> 지정가 기준으로 주수를 계산합니다.<br>매도는 <b>전량을 평단+10% 지정가</b>.</dd></div>
+  <div><dt>후반전 · 분할 수의 절반 이상</dt><dd>회당 예산 <b>전체를 평단 LOC</b>로. <b>평단 위에서는 절대 매수 금지.</b><br>매도는 <b>평단+5%와 +10%로 반반 분할</b>.</dd></div>
   <div><dt>데드존</dt><dd>평단 <b>+5% 초과 ~ +9.9%</b> 구간은 매수도 매도도 미체결. 종가가 여기 머물면 아무 일도 안 일어난다.</dd></div>
   <div><dt>사이클 완료</dt><dd>익절되면 종료 후 재시작. <b>설정한 분할 수를 다 쓰면 쿼터손절 모드</b>로 넘어간다 — 이 계산기는 거기까지는 다루지 않는다.</dd></div>
 </dl></div>
 
 <footer>
   LOC(Limit On Close)는 <b>종가가 지정가 이하일 때만 체결</b>되는 매수 주문입니다. 종가만 넣으면 규칙대로 <b>추정</b>하고, <b>매수·매도 체결 주수를 직접 넣으면 그 값이 우선</b>합니다. 매도 지정가는 장중에도 체결되니 아침에 실제 체결을 확인해 넣으세요. 수수료·환전 스프레드는 반영하지 않습니다.<br>
-  소수점 매수가 안 되는 계좌 기준으로 <b>1회 예산 ÷ 계산 기준 주가를 정수로 버림</b>해 주수를 계산합니다. 기준 주가는 실시간 시세가 아니며 설정에서 수정할 수 있습니다. 투자 판단과 실제 주문은 본인 책임입니다.
+  진행 회차 계산용 기준 주가는 설정값을 사용하며 실시간 시세가 아닙니다. 오늘 밤 매수 주문 수량은 각 주문 지정가와 환율을 반영한 참고치입니다. 투자 판단과 실제 주문은 본인 책임입니다.
 </footer>
 </div>
 
@@ -241,7 +241,7 @@ const HIST = [["2026-08-17",77.18],["2026-08-18",72.53],["2026-08-19",72.06],["2
 ["2026-09-15",67.90],["2026-09-16",67.93,0],["2026-09-17",71.38,1],["2026-09-18",72.64]];   /* 9/16 미체결, 9/17 1주 체결 */
 /* 저장 키에 버전을 붙인다 — 이전 버전 상태가 남아 새 설정값(Q)을 덮어쓰면 전부 NaN이 된다 */
 const KEY='tqqq-v2-state-v4';
-const DEF={P:10000000,fx:1351.1,T:40,Q:2};   // Q = 1회 매수 주수
+const DEF={P:15000000,fx:1351.1,T:30,Q:2};   // 원금 1,500만 원 · 30분할
 /* 계좌 동기화 기준점 — 실제 체결단가가 종가와 미세하게 달라 누적 오차가 생긴다.
    계좌 값을 넣으면 그 날짜까지는 계좌를 진실로 보고, 이후만 규칙으로 계산한다. */
 /* 계좌 실값 기본 기준점. localStorage 에 저장된 기준점이 있으면 그쪽이 우선한다.
@@ -292,6 +292,9 @@ if(cycleNumber===1 && anchor && anchor.d < ANCHOR0.d && closes.some(c=>c[0]===AN
 const usdP=()=>cfg.P/cfg.fx, one=()=>cfg.Q;   // 1회분 = Q주 (정수 매수)
 const halfQ=()=>Math.floor(cfg.Q/2);
 const remainingQ=()=>cfg.Q-halfQ();
+const trancheKRW=()=>cfg.P/cfg.T;
+const qtyAtLimit=(budgetKRW,price)=>price>0?budgetKRW/(price*cfg.fx):0;
+const orderQty=q=>q.toFixed(2);
 const roundOf=sh=>cfg.Q>0?sh/cfg.Q:0;
 function autoConfig(settings, rows, ref){
   const next={...settings,autoSizing:true};
@@ -468,7 +471,7 @@ function renderCurrent(){
   ].map(([k,v])=>`<div class="cell"><p class="k">${k}</p><p class="v">${v}</p></div>`).join('');
 
   document.getElementById('pRound').textContent=rnd.toFixed(1);
-  document.getElementById('pInv').textContent='투입 '+won(base.inv*cfg.fx)+'원 · '+cfg.T+'회차 예상소진 '+won(cfg.T*cfg.Q*(cfg.sizingPrice||avg)*cfg.fx)+'원';
+  document.getElementById('pInv').textContent='투입 '+won(base.inv*cfg.fx)+'원 · '+cfg.T+'회차 총예산 '+won(cfg.P)+'원';
   document.getElementById('pTotal').textContent=cfg.T;
   document.getElementById('pHalfMark').dataset.l=cfg.T/2+' 후반전';
   document.getElementById('pEndMark').dataset.l=cfg.T+' 소진';
@@ -486,10 +489,10 @@ function renderCurrent(){
   else if(st.ended || targetReached){ O.push(['s','주문 보류',st.ended?'사이클 완료 · 신규 주문 없음':'익절 목표 도달 · 실제 매도 체결 확인 후 주문하세요',null,null]); }
   else if(done){ O.push(['s','매수 없음',cfg.T+'회차 소진 — 쿼터손절 모드',null,null]); }
   else if(!half){
-    O.push(['b','LOC 매수 ①','평단 지정가', avg, H]);
-    O.push(['b','LOC 매수 ②','평단+5% 지정가', avg*1.05, remainingQ()]);
+    O.push(['b','LOC 매수 ①','평단 지정가 · 회당 예산의 50%', avg, qtyAtLimit(trancheKRW()/2,avg)]);
+    O.push(['b','LOC 매수 ②','평단+5% 지정가 · 회당 예산의 50%', avg*1.05, qtyAtLimit(trancheKRW()/2,avg*1.05)]);
   } else {
-    O.push(['b','LOC 매수','평단 지정가 · 평단 위에서는 매수 금지', avg, cfg.Q]);
+    O.push(['b','LOC 매수','평단 지정가 · 회당 예산 100%', avg, qtyAtLimit(trancheKRW(),avg)]);
   }
   if(st.sh>0 && !targetReached){
     if(!half) O.push(['s','지정가 매도','평단+10% · 전량', avg*1.10, st.sh]);
@@ -502,20 +505,18 @@ function renderCurrent(){
       <tr class="${k}"><td><span class="tag">${k==='b'?'매수':'매도'}</span></td>
         <td><b>TQQQ</b></td>
         <td>${k==='b'?'LOC (종가 지정가)':'지정가 매도'}<div class="dt">${dt}</div></td>
-        <td class="px">$${f2(px)}</td><td class="n"><b>${q}주</b></td>
+        <td class="px">$${f2(px)}</td><td class="n"><b>${k==='b'?orderQty(q):q}주</b></td>
         <td class="n">${won(q*px*cfg.fx)}원</td></tr>`).join('')}</tbody></table></div>
     ${O.some(o=>!o[3])?'<div class="note">'+O.find(o=>!o[3])[2]+'</div>':''}`;
   window.__slip = O.filter(o=>o[3]&&o[4]>0).map(([k,nm,dt,px,q])=>
-    `TQQQ  ${k==='b'?'매수 LOC':'매도 지정가'}  $${f2(px)}  ${q}주`).join('\n');
+    `TQQQ  ${k==='b'?'매수 LOC':'매도 지정가'}  $${f2(px)}  ${k==='b'?orderQty(q):q}주`).join('\n');
 
   const gapLo=avg*1.05, gapHi=avg*1.10;
-  const useAll=cfg.T*cfg.Q*avg, spare=P-useAll;
   document.getElementById('ordNote').innerHTML= waiting || st.ended || targetReached ? '' : done
     ? '<b>'+cfg.T+'회차를 다 썼습니다.</b> 더 매수하지 않고 익절가 도달까지 기다리거나 쿼터손절 규칙으로 넘어갑니다.'
     : `종가가 <b>$${f2(gapLo)} 초과 ~ $${f2(gapHi)} 미만</b>이면 <b>데드존</b> — 매수도 매도도 체결되지 않습니다.
        마지막 종가 $${f2(st.last)} 기준 익절까지 <b>${((gapHi/st.last-1)*100).toFixed(1)}%</b> 남았습니다.<br>
-       <b>1회 ${cfg.Q}주 고정</b>이라 ${cfg.T}회차를 다 써도 <b>${won(useAll*cfg.fx)}원</b>만 쓰고
-       <b>${won(spare*cfg.fx)}원(${(spare/P*100).toFixed(0)}%)</b>이 예비로 남습니다.`;
+       이번 회차 예산은 <b>${won(trancheKRW())}원</b>, 전체 ${cfg.T}회 예산은 <b>${won(cfg.P)}원</b>입니다. 매수 주문 수량은 지정가 기준으로 표시되며, 정수 주수로 내림하면 남은 금액은 예비금으로 남습니다.`;
 
   /* 표 이름대로 '체결' 이 있었던 날만 남긴다. 주문 미집행·미체결 날은 행을 만들지 않는다
      (계좌 기준점이 찍힌 행은 평단 근거라 남긴다). */
