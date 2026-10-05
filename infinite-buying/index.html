@@ -232,13 +232,16 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-si
 </div>
 
 <script>
-/* 실제 체결가 (8/17·9/2는 계좌 기준, yfinance 종가와 미세 차이) */
+/* 실제 체결가 (8/17·9/2는 계좌 기준, 시세 종가는 Yahoo Finance 기준) */
 const HIST = [["2026-08-17",77.18],["2026-08-18",72.53],["2026-08-19",72.06],["2026-08-20",70.48],
 ["2026-08-21",71.17],["2026-08-24",69.01],["2026-08-25",70.27],["2026-08-26",70.49],
 ["2026-08-27",73.30],["2026-08-28",71.85],["2026-08-31",71.92],["2026-09-01",69.15],
 ["2026-09-02",69.00],["2026-09-03",72.03],["2026-09-04",72.37],["2026-09-08",72.16],
 ["2026-09-09",71.55],["2026-09-10",69.21],["2026-09-11",70.98],["2026-09-14",69.27],
-["2026-09-15",67.90],["2026-09-16",67.93,0],["2026-09-17",71.38,1],["2026-09-18",72.64]];   /* 9/16 미체결, 9/17 1주 체결 */
+["2026-09-15",67.90],["2026-09-16",67.93,0],["2026-09-17",71.38,1],["2026-09-18",72.64],
+["2026-09-21",78.91],["2026-09-22",80.83],["2026-09-23",78.66],["2026-09-24",78.58],
+["2026-09-25",79.60],["2026-09-28",77.04],["2026-09-29",77.46],["2026-09-30",78.03],
+["2026-10-01",78.73],["2026-10-02",81.01]];   /* 마지막 확인 종가: 10/2 미국장 */
 /* 저장 키에 버전을 붙인다 — 이전 버전 상태가 남아 새 설정값(Q)을 덮어쓰면 전부 NaN이 된다 */
 const KEY='tqqq-v2-state-v4';
 const DEF={P:15000000,fx:1351.1,T:30,Q:2};   // 원금 1,500만 원 · 30분할
@@ -284,6 +287,19 @@ if(cycleNumber===1){ const byD=Object.fromEntries(closes.map(c=>[c[0],c]));
     else if(h[2]!==undefined) cur[2]=toQty(h[2],undefined);
   }
   closes.sort((a,b)=>a[0]<b[0]?-1:1); }
+/* 새 사이클의 체결 입력은 브라우저별이므로 유지하고, 마지막 입력일 이후의 시장 종가만 채운다.
+   비어 있는 새 사이클은 가장 최근 시장 종가를 기준점으로 삼아 다음 거래일을 표시한다. */
+if(cycleNumber>1){
+  if(closes.length){
+    const lastSavedDate=closes.at(-1)[0], byD=Object.fromEntries(closes.map(c=>[c[0],c]));
+    for(const h of HIST){
+      if(h[0]>lastSavedDate&&!byD[h[0]]) closes.push([h[0],Number(h[1]),toQty(h[2],undefined),toQty(h[3],0)]);
+    }
+    closes.sort((a,b)=>a[0]<b[0]?-1:1);
+  }else if(HIST.length){
+    const h=HIST.at(-1); referenceClose={d:h[0],px:Number(h[1])};
+  }
+}
 
 /* 브라우저에 오래된 계좌 기준점이 남아 있으면 최신 확인값(ANCHOR0)이 이긴다.
    ANCHOR0 날짜가 지금 데이터에 없으면(다른 기간을 보고 있으면) 저장본을 그대로 둔다. */
@@ -477,7 +493,7 @@ function renderCurrent(){
   document.getElementById('pEndMark').dataset.l=cfg.T+' 소진';
   document.getElementById('pFill').style.width=Math.min(100,rnd/cfg.T*100)+'%';
 
-  const when=closes.length?nextBizDay(closes[closes.length-1][0]):cfg.startDate||(referenceClose?nextBizDay(referenceClose.d):'–');
+  const when=closes.length?nextBizDay(closes[closes.length-1][0]):(cycleNumber>1&&referenceClose?nextBizDay(referenceClose.d):cfg.startDate||(referenceClose?nextBizDay(referenceClose.d):'–'));
   const kd=when==='–'?'–':`${+when.slice(5,7)}/${+when.slice(8,10)}(${wd[new Date(when+'T00:00:00Z').getUTCDay()]}) 밤`;
   document.getElementById('ordDate').textContent=kd;
   document.getElementById('ordWhen').textContent=

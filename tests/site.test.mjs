@@ -49,6 +49,8 @@ test('infinite-buying page preserves the recovered Claude v24 interface', async 
     "const KEY='tqqq-v2-state-v4'",
     '["2026-09-17",71.38,1]',
     '["2026-09-18",72.64]',
+    '["2026-10-02",81.01]',
+    'if(cycleNumber>1){',
     'fx:1351.1',
     "const ANCHOR0={d:'2026-09-18', avg:71.0204, sh:37}",
   ]) assert.match(html, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
@@ -61,6 +63,9 @@ test('fixed-cash order sizing shows decimal shares before integer execution', as
   const qtyAtLimit = new Function('cfg', `return (budgetKRW,price)=>${expression};`)({ fx: 1351.1 });
   assert.equal(qtyAtLimit(500000, 78.73).toFixed(2), '4.70');
   assert.match(html, /정수 주수 주문 시에는 직접 내림해 입력하세요/);
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script, 'inline script is present');
+  assert.doesNotThrow(() => new Function(script));
 });
 
 test('every page declares UTF-8 before Korean content', async () => {
