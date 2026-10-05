@@ -91,3 +91,13 @@ test('asset-trend page keeps its monthly data table editable in one place', asyn
   assert.ok(script, 'inline script is present');
   assert.doesNotThrow(() => new Function(script));
 });
+
+test('asset-trend page keeps only the top chart', async () => {
+  const html = await readFile(new URL('../asset-trend/index.html', import.meta.url), 'utf8');
+  assert.match(html, /id="c0"/);
+  assert.doesNotMatch(html, /id="c3"|id="c4"/);
+  assert.doesNotMatch(html, /금융자산 증가 · 구성별|투자순익 · 누적/);
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script, 'inline script is present');
+  assert.doesNotThrow(() => new Function(script));
+});

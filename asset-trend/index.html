@@ -120,23 +120,6 @@ footer{margin:34px 0 0;font-size:11.5px;color:var(--ink3);line-height:1.7}
   <svg id="c0" viewBox="0 0 900 330" role="img" aria-label="평가금액 누적투자 월별손익"></svg>
 </div>
 
-<h2>금융자산 증가 · 구성별</h2>
-<p class="h2sub">2025-12 를 0 으로 놓고 그 뒤 늘어난 금액입니다. 부동산과 주담대는 뺀 금융자산만입니다.</p>
-<div class="card">
-  <div class="legend">
-    <span><i class="sw"></i>주식</span>
-    <span><i class="sw a"></i>연금+청약</span>
-    <span><i class="sw g"></i>현금</span>
-  </div>
-  <svg id="c4" viewBox="0 0 900 300" role="img" aria-label="금융자산 증가 구성별"></svg>
-</div>
-
-<h2>투자순익 · 누적</h2>
-<p class="h2sub">5월 +5,779만에서 −4,415만으로. <b>7월 연금펀드(반도체) −3,364만</b>과 <b>8월 쿠팡 −4,000만</b>, 두 항목이 만든 낙폭입니다.</p>
-<div class="card">
-  <svg id="c3" viewBox="0 0 900 300" role="img" aria-label="누적 투자순익"></svg>
-</div>
-
 
 
 
@@ -196,7 +179,6 @@ const PRF=D.map((d,i)=>d-SAV[i]);               // 투자순익
 const cum=a=>a.reduce((o,v)=>(o.push((o.length?o[o.length-1]:0)+v),o),[]);
 const CS=cum(SAV), CP=cum(PRF);
 const CG=M.map((_,i)=>TOT[i+1]-TOT[0]);          // 자산 증가 (25.12 = 0)
-const dSTK=STK.map(v=>v-STK[0]), dPEN=PEN.map(v=>v-PEN[0]), dCSH=CSH.map(v=>v-CSH[0]);
 
 const man=n=>Math.round(n/1e4).toLocaleString('ko-KR')+'만';
 const sgn=n=>(n>=0?'+':'')+man(n);
@@ -215,16 +197,6 @@ document.getElementById('strip').innerHTML=[
 
 /* ── 공통 축 ── */
 const W=900,H=300,L=62,R=16,T=18,B=34;
-const px=(i,n)=>L+(W-L-R)*(n===1?0.5:i/(n-1));
-function yscale(lo,hi){ const p=(hi-lo)*0.08||1; lo-=p; hi+=p;
-  return v=>T+(H-T-B)*(1-(v-lo)/(hi-lo)); }
-function grid(svg,y,ticks,fmt){
-  return ticks.map(v=>`<line class="${v===0?'zl':'gl'}" x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`
-    +`<text class="gx" x="${L-8}" y="${(y(v)+3.5).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`).join('');
-}
-function xlabels(labels){
-  return labels.map((m,i)=>`<text class="gx" x="${px(i,labels.length).toFixed(1)}" y="${H-B+18}" text-anchor="middle">${m}</text>`).join('');
-}
 /* 눈금은 깔끔한 단위(1·2·2.5·5 × 10^n)로 끊는다 — 그래야 라벨이 겹치지 않는다 */
 function ticksFor(lo,hi,n=5){
   const raw=(hi-lo)/(n-1), mag=Math.pow(10,Math.floor(Math.log10(raw)));
@@ -262,41 +234,6 @@ function ticksFor(lo,hi,n=5){
     s+=`<text class="vlab" x="${X(i).toFixed(1)}" y="${(y(v)+dy).toFixed(1)}" text-anchor="middle" fill="${c}">${man(v)}</text>`; });
   lab(EV,'var(--gr)',-11); lab(PR,'var(--dn)',18); lab(PL,'var(--up)',-11);
   document.getElementById('c0').innerHTML=s;
-})();
-
-/* ── 차트3: 투자순익 누적 ── */
-(function(){
-  const lo=Math.min(...CP,0),hi=Math.max(...CP,0);
-  const y=yscale(lo,hi), z=y(0);
-  const pts=CP.map((v,i)=>px(i,CP.length).toFixed(1)+' '+y(v).toFixed(1));
-  let s=grid(null,y,ticksFor(lo,hi),v=>man(v))+xlabels(M);
-  /* 0선 기준으로 채운 영역 — 플러스와 마이너스를 두 겹으로 */
-  s+=`<path d="M${px(0,CP.length).toFixed(1)} ${z.toFixed(1)} L${pts.join(' L')} L${px(CP.length-1,CP.length).toFixed(1)} ${z.toFixed(1)} Z" fill="var(--up)" opacity="0.10"/>`;
-  s+=`<line class="zl" x1="${L}" x2="${W-R}" y1="${z.toFixed(1)}" y2="${z.toFixed(1)}"/>`;
-  s+=`<path d="M${pts.join(' L')}" fill="none" stroke="var(--up)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
-  CP.forEach((v,i)=>{
-    s+=`<circle cx="${px(i,CP.length).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" fill="${v>=0?'var(--up)':'var(--dn)'}" stroke="var(--panel)" stroke-width="2"/>`;
-    s+=`<text class="vlab" x="${px(i,CP.length).toFixed(1)}" y="${(v>=0?y(v)-11:y(v)+18).toFixed(1)}" text-anchor="middle" fill="${v>=0?'var(--up)':'var(--dn)'}">${sgn(v)}</text>`;
-  });
-  document.getElementById('c3').innerHTML=s;
-})();
-
-/* ── 차트4: 금융자산 증가 구성별 스택 (25.12 = 0) ── */
-(function(){
-  const hi=Math.max(...CG,0), y=yscale(0,hi), bw=(W-L-R)/MA.length*0.62;
-  let s=grid(null,y,ticksFor(0,hi),v=>man(v))+xlabels(MA);
-  MA.forEach((m,i)=>{
-    const cx=px(i,MA.length)-bw/2; let acc=0;
-    [[dSTK[i],'var(--up)'],[dPEN[i],'var(--amber)'],[dCSH[i],'var(--ink3)']].forEach(([v,c])=>{
-      if(v<=0) return;
-      const y0=y(acc), y1=y(acc+v);
-      s+=`<rect x="${cx.toFixed(1)}" y="${y1.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(y0-y1,0).toFixed(1)}" fill="${c}"/>`;
-      acc+=v;
-    });
-    if(acc>0) s+=`<text class="gx" x="${(cx+bw/2).toFixed(1)}" y="${(y(acc)-7).toFixed(1)}" text-anchor="middle">${man(acc)}</text>`;
-  });
-  s+=`<line class="zl" x1="${L}" x2="${W-R}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>`;
-  document.getElementById('c4').innerHTML=s;
 })();
 
 /* ── 표 ── */
