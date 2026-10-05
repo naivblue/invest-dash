@@ -51,6 +51,8 @@ test('infinite-buying page preserves the recovered Claude v24 interface', async 
     '["2026-09-18",72.64]',
     '["2026-10-02",81.01,0]',
     'if(cycleNumber>1){',
+    "if(byD['2026-10-02']) byD['2026-10-02'][2]=0;",
+    "r.d!=='2026-10-02'",
     'fx:1351.1',
     "const ANCHOR0={d:'2026-09-18', avg:71.0204, sh:37}",
   ]) assert.match(html, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
