@@ -1,16 +1,16 @@
 {
-  "updated": "2026-10-17T00:22:34+00:00",
-  "asof": "2026-10-15",
+  "updated": "2026-10-17T11:29:00+00:00",
+  "asof": "2026-10-16",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 728.0,
-    "chg_pct": -0.13,
+    "price": 709.8,
+    "chg_pct": -2.5,
     "high52": 759.66,
     "low52": 557.09,
-    "drawdown_pct": -4.2,
-    "rsi": 44.1,
-    "asof": "2026-10-15"
+    "drawdown_pct": -6.6,
+    "rsi": 35.4,
+    "asof": "2026-10-16"
   },
   "vix": {
     "price": 19.99,
@@ -64,13 +64,13 @@
   "qld": {
     "name": "QLD (2x)",
     "unit": "$",
-    "price": 92.36,
-    "chg_pct": -0.21,
+    "price": 87.72,
+    "chg_pct": -5.02,
     "high52": 100.77,
     "low52": 57.11,
-    "drawdown_pct": -8.3,
-    "rsi": 43.0,
-    "asof": "2026-10-15"
+    "drawdown_pct": -13.0,
+    "rsi": 34.6,
+    "asof": "2026-10-16"
   },
   "triggers": {
     "-10": 683.69,
@@ -86,24 +86,24 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 728.0,
-      "chg_pct": -0.13,
+      "price": 709.8,
+      "chg_pct": -2.5,
       "high52": 759.66,
       "low52": 557.09,
-      "drawdown_pct": -4.2,
-      "rsi": 44.1,
-      "asof": "2026-10-15"
+      "drawdown_pct": -6.6,
+      "rsi": 35.4,
+      "asof": "2026-10-16"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 92.36,
-      "chg_pct": -0.21,
+      "price": 87.72,
+      "chg_pct": -5.02,
       "high52": 100.77,
       "low52": 57.11,
-      "drawdown_pct": -8.3,
-      "rsi": 43.0,
-      "asof": "2026-10-15"
+      "drawdown_pct": -13.0,
+      "rsi": 34.6,
+      "asof": "2026-10-16"
     },
     {
       "name": "S&P 500",
@@ -141,12 +141,12 @@
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1334.2,
-      "chg_pct": -0.5,
+      "price": 1329.6,
+      "chg_pct": -0.85,
       "high52": 1554.48,
-      "low52": 1334.13,
-      "drawdown_pct": -14.2,
-      "rsi": 38.1,
+      "low52": 1329.6,
+      "drawdown_pct": -14.5,
+      "rsi": 36.1,
       "asof": "2026-10-17"
     },
     {
@@ -163,13 +163,13 @@
     {
       "name": "코스피",
       "unit": "",
-      "price": 5554.22,
-      "chg_pct": -7.57,
+      "price": 5668.05,
+      "chg_pct": 2.05,
       "high52": 9114.55,
       "low52": 3424.6,
-      "drawdown_pct": -39.1,
-      "rsi": 23.0,
-      "asof": "2026-10-15"
+      "drawdown_pct": -37.8,
+      "rsi": 27.1,
+      "asof": "2026-10-16"
     }
   ],
   "last_seen": {
