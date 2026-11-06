@@ -1,28 +1,28 @@
 {
-  "updated": "2026-11-05T02:18:51+00:00",
-  "asof": "2026-11-03",
+  "updated": "2026-11-06T02:18:38+00:00",
+  "asof": "2026-11-04",
   "qqq": {
     "name": "QQQ",
     "unit": "$",
-    "price": 685.28,
-    "chg_pct": 0.62,
+    "price": 691.95,
+    "chg_pct": 0.97,
     "high52": 759.66,
     "low52": 557.09,
-    "drawdown_pct": -9.8,
-    "rsi": 34.7,
-    "asof": "2026-11-03"
+    "drawdown_pct": -8.9,
+    "rsi": 38.4,
+    "asof": "2026-11-04"
   },
   "vix": {
-    "price": 16.61,
-    "chg_pct": -20.26
+    "price": 28.18,
+    "chg_pct": 69.66
   },
   "fear_greed": {
-    "score": 27.3,
-    "label": "공포",
-    "prev_close": 19.1,
-    "prev_week": 34.4,
-    "prev_month": 38.2,
-    "asof": "2026-11-04"
+    "score": 19.9,
+    "label": "극단적 공포",
+    "prev_close": 27.3,
+    "prev_week": 30.8,
+    "prev_month": 43.1,
+    "asof": "2026-11-05"
   },
   "stage": {
     "n": 1,
@@ -64,13 +64,13 @@
   "qld": {
     "name": "QLD (2x)",
     "unit": "$",
-    "price": 81.28,
-    "chg_pct": 1.22,
+    "price": 82.81,
+    "chg_pct": 1.88,
     "high52": 100.77,
     "low52": 57.11,
-    "drawdown_pct": -19.3,
-    "rsi": 34.1,
-    "asof": "2026-11-03"
+    "drawdown_pct": -17.8,
+    "rsi": 37.5,
+    "asof": "2026-11-04"
   },
   "triggers": {
     "-10": 683.69,
@@ -86,90 +86,90 @@
     {
       "name": "QQQ",
       "unit": "$",
-      "price": 685.28,
-      "chg_pct": 0.62,
+      "price": 691.95,
+      "chg_pct": 0.97,
       "high52": 759.66,
       "low52": 557.09,
-      "drawdown_pct": -9.8,
-      "rsi": 34.7,
-      "asof": "2026-11-03"
+      "drawdown_pct": -8.9,
+      "rsi": 38.4,
+      "asof": "2026-11-04"
     },
     {
       "name": "QLD (2x)",
       "unit": "$",
-      "price": 81.28,
-      "chg_pct": 1.22,
+      "price": 82.81,
+      "chg_pct": 1.88,
       "high52": 100.77,
       "low52": 57.11,
-      "drawdown_pct": -19.3,
-      "rsi": 34.1,
-      "asof": "2026-11-03"
+      "drawdown_pct": -17.8,
+      "rsi": 37.5,
+      "asof": "2026-11-04"
     },
     {
       "name": "S&P 500",
       "unit": "",
-      "price": 7688.62,
-      "chg_pct": 1.58,
+      "price": 7353.73,
+      "chg_pct": -4.36,
       "high52": 7818.93,
       "low52": 6343.72,
-      "drawdown_pct": -1.7,
-      "rsi": 50.4,
-      "asof": "2026-11-04"
+      "drawdown_pct": -5.9,
+      "rsi": 33.5,
+      "asof": "2026-11-05"
     },
     {
       "name": "나스닥",
       "unit": "",
-      "price": 25736.51,
-      "chg_pct": 1.44,
+      "price": 24315.0,
+      "chg_pct": -5.52,
       "high52": 27599.79,
       "low52": 20794.64,
-      "drawdown_pct": -6.8,
-      "rsi": 42.1,
-      "asof": "2026-11-04"
+      "drawdown_pct": -11.9,
+      "rsi": 30.0,
+      "asof": "2026-11-05"
     },
     {
       "name": "미국 10년물(%)",
       "unit": "",
-      "price": 4.89,
-      "chg_pct": -1.17,
+      "price": 4.84,
+      "chg_pct": -1.16,
       "high52": 5.31,
       "low52": 3.96,
-      "drawdown_pct": -7.9,
-      "rsi": 38.1,
-      "asof": "2026-11-04"
+      "drawdown_pct": -8.9,
+      "rsi": 34.6,
+      "asof": "2026-11-05"
     },
     {
       "name": "USD/KRW",
       "unit": "₩",
-      "price": 1341.88,
-      "chg_pct": -0.08,
+      "price": 1356.28,
+      "chg_pct": 1.21,
       "high52": 1554.48,
       "low52": 1321.76,
-      "drawdown_pct": -13.7,
-      "rsi": 50.6,
-      "asof": "2026-11-05"
+      "drawdown_pct": -12.8,
+      "rsi": 58.3,
+      "asof": "2026-11-06"
     },
     {
       "name": "삼성전자",
       "unit": "₩",
-      "price": 205250.0,
-      "chg_pct": -5.85,
-      "high52": 355930.22,
+      "price": 189000.0,
+      "chg_pct": -6.2,
+      "high52": 355930.19,
       "low52": 92440.26,
-      "drawdown_pct": -42.3,
-      "rsi": 36.9,
-      "asof": "2026-11-05"
+      "drawdown_pct": -46.9,
+      "rsi": 32.0,
+      "asof": "2026-11-06"
     },
     {
       "name": "코스피",
       "unit": "",
-      "price": 5463.35,
-      "chg_pct": -3.28,
+      "price": 5040.48,
+      "chg_pct": -11.32,
       "high52": 9114.55,
       "low52": 3846.06,
-      "drawdown_pct": -40.1,
-      "rsi": 37.0,
-      "asof": "2026-11-05"
+      "drawdown_pct": -44.7,
+      "rsi": 30.8,
+      "asof": "2026-11-06"
     }
   ],
   "last_seen": {
