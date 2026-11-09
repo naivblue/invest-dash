@@ -219,7 +219,10 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
       }).join('')}
     </table></div>
 
-    <h3>매수 단계</h3>
+    <h3>매수 단계 · 조건 충족 시 실행할 행동</h3>
+    <p class="hist"><b>‘실탄’ = 이번 하락장에 투입하기로 미리 정한 투자금</b>입니다. 전체 자산이나 생활비를 포함한 보유 현금의 1/3이 아닙니다.
+      예: 하락장 투자금이 3,000만 원이면, <b>2단계에서 1,000만 원으로 QQQ를 실제 매수</b>하고 나머지 2,000만 원은 이후 단계에 대비해 남깁니다.
+      아래 표는 <b>각 단계의 조건이 충족됐을 때</b> 실행하는 계획입니다. 2단계에 도달하지 않았다면 1/3 매수도 대기합니다.</p>
     <div class="scroll"><table>
       <caption>단계는 고점대비 하락률이 정하고, RSI는 2단계에서만 AND 게이트로 붙는다.
         가격은 52주 고점 $${f(d.qqq.high52)} 기준으로 매 갱신마다 재계산.
@@ -227,7 +230,7 @@ fetch('data.json?t=' + Date.now()).then(r => r.json()).then(d => {
         <b>QLD 참고가</b>는 QLD 52주 고점 $${f(d.qld.high52)}에 2배를 선형 적용한 근사 —
         레버리지 감쇠 때문에 실제로는 이보다 낮은 값에서 QQQ 트리거를 만난다</caption>
       <tr><th>단계</th><th>조건</th><th class="num">QQQ 트리거</th><th class="num">QLD 참고가</th>
-          <th class="num">마지막 도달</th><th>행동</th></tr>
+          <th class="num">마지막 도달</th><th>조건 충족 시 실행</th></tr>
       ${d.ladder.map(s => {
         const hit = s.pct != null && d.qqq.price <= d.triggers[s.pct];
         return `<tr class="${s.n === d.stage.n ? 'cur' : s.n < d.stage.n ? 'past' : ''}">
